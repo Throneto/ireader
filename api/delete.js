@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' }
+export const config = { runtime: 'nodejs' }
 import { del } from '@vercel/blob'
 import { verifySession } from './_shared/session.js'
 export default async function handler(req) {

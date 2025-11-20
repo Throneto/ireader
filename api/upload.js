@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' }
+export const config = { runtime: 'nodejs' }
 import { put } from '@vercel/blob'
 import { verifySession } from './_shared/session.js'
 import { applyRateLimit } from './_shared/ratelimit.js'

@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' }
+export const config = { runtime: 'nodejs' }
 export default async function handler(req) {
   const clearSession = 'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'
   const clearCsrf = 'csrf=; Path=/; SameSite=Lax; Max-Age=0'
