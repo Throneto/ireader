@@ -341,9 +341,12 @@
         if (!pw) return;
         try {
           loginBtn.disabled = true; loginStatus.textContent = '登录中...';
-          const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+          const ac = new AbortController();
+          const timer = setTimeout(() => ac.abort(), 12000);
+          const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }), signal: ac.signal });
+          clearTimeout(timer);
           if (res.ok) { const j = await res.json(); csrfToken = j.csrf; serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none'; logoutBtn.style.display = ''; loginStatus.textContent = '已登录'; await refreshServerLibrary(); } else { loginStatus.textContent = '登录失败'; }
-        } catch(e) { loginStatus.textContent = '服务器错误'; }
+        } catch(e) { loginStatus.textContent = '服务器无响应'; }
         finally { loginBtn.disabled = false; }
       }
       loginBtn.addEventListener('click', login);
