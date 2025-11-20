@@ -12,4 +12,4 @@ tandoku is a Japanese reading system comprising apps and utilities to help read 
 
 ## Testing
 Some of the tests leverage the [Verify](https://github.com/VerifyTests/Verify) snapshot tool. For the best experience
-updating test snapshots, install a supported diff tool and/or the dotnet global tool [verify.tool](https://github.com/VerifyTests/Verify.Terminal).
+updating test snapshots, install a supported diff tool and/or the dotnet global tool [verify.tool](https://github.com/VerifyTests/Verify.Terminal).# ireader
