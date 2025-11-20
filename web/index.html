@@ -58,16 +58,11 @@
       .sidebar .toc a:hover { background: #ffffff1a; }
       .sidebar .meta { border-top: 1px solid #e5e7eb33; padding: 10px 12px; font-size: 12px; color: var(--muted); }
 
-      #viewer { position: relative; min-height: 0; display: flex; justify-content: center; }
-      #reader { width: 100%; height: calc(100vh - 60px); }
+      #viewer { display: grid; grid-template-rows: 1fr auto; height: calc(100vh - 60px); min-height: 0; justify-items: center; }
+      #reader { width: 100%; height: 100%; }
       .reader-fixed #reader { width: var(--reader-fixed-width, 820px); max-width: var(--reader-fixed-width, 820px); }
-      .reader-fixed .footer { left: 50%; right: auto; transform: translateX(-50%); width: var(--reader-fixed-width, 820px); }
-      .footer {
-        position: absolute; bottom: 10px; left: 10px; right: 10px;
-        display: flex; gap: 10px; align-items: center;
-        background: #00000020; backdrop-filter: blur(6px);
-        border-radius: 8px; padding: 8px 10px; color: white;
-      }
+      .reader-fixed .footer { width: var(--reader-fixed-width, 820px); justify-self: center; }
+      .footer { display: flex; gap: 10px; align-items: center; background: #00000012; backdrop-filter: blur(6px); border-radius: 8px; padding: 8px 10px; color: inherit; margin-top: 10px; }
       .footer .progress { flex: 1; height: 6px; border-radius: 999px; background: #ffffff55; overflow: hidden; }
       .footer .progress > div { height: 100%; background: var(--accent); width: 0%; }
       .footer .loc { font-size: 12px; white-space: nowrap; }
