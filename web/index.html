@@ -267,7 +267,7 @@
           alert('加载书籍失败：' + e.message);
           return;
         }
-        rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value, allowScriptedContent: false });
+        rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value, allowScriptedContent: true });
         await rendition.display(startCfi || undefined);
         initThemes();
         applyReaderWidth();
@@ -280,7 +280,11 @@
             const a = document.createElement('a');
             a.textContent = item.label;
             a.href = '#';
-            a.onclick = (ev) => { ev.preventDefault(); rendition.display(item.href); };
+            a.onclick = async (ev) => {
+              ev.preventDefault();
+              try { await rendition.display(item.href); }
+              catch (e) { const base = (item.href || '').split('#')[0]; try { await rendition.display(base); } catch (_) {} }
+            };
             tocEl.appendChild(a);
           });
         } catch (e) {
@@ -350,6 +354,17 @@
         finally { loginBtn.disabled = false; }
       }
       loginBtn.addEventListener('click', login);
+
+      async function logout() {
+        await fetch('/api/logout', { method: 'POST' });
+        serverLoggedIn = false;
+        csrfToken = null;
+        adminPwInput.style.display = '';
+        loginBtn.style.display = '';
+        logoutBtn.style.display = 'none';
+        serverLibraryEl.innerHTML = '';
+      }
+      logoutBtn.addEventListener('click', logout);
 
       async function refreshServerLibrary() {
         try {
@@ -595,5 +610,3 @@
     </script>
   </body>
 </html>
-      async function logout() { await fetch('/api/logout', { method: 'POST' }); serverLoggedIn = false; csrfToken = null; adminPwInput.style.display = ''; loginBtn.style.display = ''; logoutBtn.style.display = 'none'; serverLibraryEl.innerHTML = ''; }
-      logoutBtn.addEventListener('click', logout);
