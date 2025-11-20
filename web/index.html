@@ -183,7 +183,13 @@
       async function loadBook(source) {
         reset();
         try {
-          book = ePub(source);
+          if (source instanceof File) {
+            book = ePub();
+            const buffer = await source.arrayBuffer();
+            await book.open(buffer);
+          } else {
+            book = ePub(source);
+          }
         } catch (e) {
           alert('加载书籍失败：' + e.message);
           return;
@@ -225,8 +231,7 @@
       fileInput.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        blobUrl = URL.createObjectURL(file);
-        await loadBook(blobUrl);
+        await loadBook(file);
       });
 
       openUrlBtn.addEventListener('click', async () => {
