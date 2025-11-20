@@ -1,0 +1,45 @@
+stage: common
+artifacts:
+  library_version:
+    container: library
+    location: .tandoku-library/version
+    sourceControl: text
+  library_layout:
+    container: library
+    location: .tandoku-library/layout.yaml
+    sourceControl: text
+  library_definition:
+    summary: Holds definition/metadata for a tandoku library.
+    container: library
+    location: library.yaml
+    sourceControl: text
+
+simpleValues:
+  library_path:
+    summary: Library path or definition (.tdkl.yaml) location.
+  library_info:
+    summary: Library path, definition path and metadata/configuration values.
+  library_layout:
+    status: maybe
+
+operations:
+  tandoku_library_init:
+    inputs:
+      - library_path
+    outputs:
+      - library_version
+      - library_layout
+      - library_definition
+    cmdlet: Initialize-TandokuLibrary
+    status: done
+
+  tandoku_library_info:
+    inputs:
+      - library_path
+      - library_version
+      - library_layout
+      - library_definition
+    outputs:
+      - library_info
+    cmdlet: Get-TandokuLibrary
+    status: done

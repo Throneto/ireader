@@ -1,0 +1,119 @@
+stage: prepare
+media: book
+artifacts:
+  src_ebook_metadata:
+    container: volume
+    location: source/metadata.opf
+    sourceControl: text
+  src_ebook_cover:
+    container: volume
+    location: source/cover.jpg
+    sourceControl: binary
+  src_kindle_ebook:
+    container: volume
+    location: source/
+    files: [.azw3]
+    sourceControl: binary
+  src_kindle_metadata:
+    container: volume
+    location: source/kindle-metadata.xml
+    sourceControl: text
+  
+  temp_kindle_ebook_images:
+    container: volume
+    location: temp/ebook/mobi8/OEBPS/Images/
+    files: [.jpeg, .jpg]
+    sourceControl: ignore
+  
+  exported_comicbook:
+    container: staging
+    location: "{target-device}/export/{moniker}-{title}.cbz"
+
+operations:
+  tandoku_calibre_extractmeta:
+    inputs:
+      - external_calibre_ebook_metadata
+    outputs:
+      - volume_title
+      - asin
+    script: TandokuCalibreExtractMeta.ps1
+    status: done
+  
+  tandoku_kindlestore_extractmeta:
+    inputs:
+      - asin
+      - kindlestore_metadata_cache
+    outputs:
+      - src_kindle_metadata
+    script: TandokuKindleStoreExtractMeta.ps1
+    status: done
+  
+  tandoku_calibre_importmeta:
+    inputs:
+      - src_ebook_metadata
+      - src_kindle_metadata
+    outputs:
+      - volume_definition
+    script: TandokuCalibreImportMeta.ps1
+    status: next
+  
+  # TODO: figure out representation of higher-level/aggregate operations
+  #tandoku_calibre_import:
+  #  inputs:
+  #    - external_calibre_ebook
+  #    - external_calibre_ebook_metadata
+  #    - external_calibre_ebook_cover
+  #    - kindlestore_metadata_cache
+  #  outputs:
+  #    - src_ebook
+  #    - src_ebook_metadata
+  #    - src_ebook_cover
+  #    - src_kindle_metadata
+
+  tandoku_source_import:
+    inputs:
+      - external_calibre_ebook
+      - external_calibre_ebook_metadata
+      - external_calibre_ebook_cover
+    outputs:
+      - src_kindle_ebook
+      - src_ebook_metadata
+      - src_ebook_cover
+  
+  tandoku_volume_setcover:
+    inputs:
+      - src_ebook_cover
+  
+  tandoku_kindle_unpack:
+    inputs:
+      - src_kindle_ebook
+    outputs:
+      - temp_kindle_ebook_images
+    script: TandokuKindleUnpack.ps1
+    status: done
+  
+  tandoku_images_import:
+    inputs:
+      - temp_kindle_ebook_images
+    outputs:
+      - images
+    script: TandokuImagesImport.ps1
+    status: done
+  
+  tandoku_content_transform_manga:
+    inputs:
+      - initial_content
+    outputs:
+      - transformed_content
+  
+  tandoku_content_finalize:
+    inputs:
+      - transformed_content
+  
+  tandoku_comicbook_export:
+    inputs:
+      - images
+    outputs:
+      - exported_comicbook
+    script: TandokuComicBookExport.ps1
+    status: next

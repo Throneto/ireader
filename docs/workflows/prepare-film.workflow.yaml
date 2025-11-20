@@ -1,0 +1,191 @@
+stage: prepare
+media: film
+artifacts:
+  src_subtitle:
+    summary: |-
+      Subtitle file added to volume with no changes to name or content.
+      May or may not include language in filename (e.g. subtitle.ja.srt).
+      Should be in a supported subtitle format (.srt, .ass, .vtt).
+    container: volume
+    location: source/{reflang?}/
+    sourceControl: binary
+
+  src_plain_subtitle:
+    summary: |-
+      Plain subrip (.srt) subtitle with no formatting or overlapping timecodes.
+      May or may not include language in filename (e.g. subtitle.ja.srt).
+      Should be in a supported subtitle format (.srt, .ass, .vtt).
+    container: volume
+    location: source/{reflang?}/plain/
+    sourceControl: text
+
+  initial_subtitle:
+    summary: |-
+      Subtitle file renamed according to volume slug.
+      Always includes language in filename (e.g. subtitle.ja.srt).
+    container: volume
+    location: subtitles/{reflang?}/00-initial/
+    sourceControl: text
+  clean_subtitle:
+    container: volume
+    location: subtitles/{reflang?}/10-clean/
+    sourceControl: text
+  aligned_subtitle:
+    container: volume
+    location: subtitles/{reflang?}/20-aligned/
+    sourceControl: text
+  final_subtitle:
+    container: volume
+    location: subtitles/{reflang?}/ff-final/
+    sourceControl: text
+    notes: |-
+      TBD - is the /ff-final/ directory needed to use dvc pipelines? Remove later?
+
+  src_video:
+    container: volume
+    location: source/
+    sourceControl: binary
+  initial_video:
+    summary: |-
+      Video file renamed according to volume slug.
+    container: volume
+    location: video/00-initial/
+    sourceControl: binary
+  clean_video:
+    container: volume
+    location: video/10-clean/
+    sourceControl: binary
+  final_video:
+    container: volume
+    location: video/ff-final/
+    sourceControl: binary
+    notes: |-
+      TBD - is the /ff-final/ directory needed to use dvc pipelines? Remove later?
+
+  exported_video:
+    container: staging
+    location: "{target-device}/export/{moniker}-{title}"
+  exported_subtitles:
+    container: staging
+    location: "{target-device}/export/{moniker}-{title}"
+
+  subs2cia_subtitle:
+    container: volume
+    location: subtitles/subs2cia/
+    sourceControl: text
+  temp_subs2cia_tsv:
+    container: volume
+    location: temp/subs2cia/
+    sourceControl: ignore
+  temp_subs2cia_audio_clips:
+    container: volume
+    location: temp/subs2cia/
+    sourceControl: ignore
+  temp_subs2cia_images:
+    container: volume
+    location: temp/subs2cia/
+    sourceControl: ignore
+  subs2cia_content:
+    container: volume
+    location: content/50-subs2cia/
+    sourceControl: text
+
+  audio_clips:
+    container: volume
+    location: audio/clips/
+    sourceControl: binary
+
+operations:
+  tandoku_source_import:
+    inputs:
+      - external_subtitle
+      - external_video
+    outputs:
+      - src_subtitle
+      - src_video
+
+  tandoku_subtitles_init:
+    inputs:
+      - volume_info
+      - src_subtitle
+    outputs:
+      - initial_subtitle
+  tandoku_subtitles_clean:
+    inputs:
+      - initial_subtitle
+    outputs:
+      - clean_subtitle
+  tandoku_subtitles_align:
+    inputs:
+      - clean_subtitle
+      - final_video
+    outputs:
+      - aligned_subtitle
+  tandoku_subtitles_finalize:
+    inputs:
+      - aligned_subtitle
+    outputs:
+      - final_subtitle
+  tandoku_subtitles_contentgen:
+    inputs:
+      - final_subtitle
+    outputs:
+      - initial_content
+
+  tandoku_subtitles_subs2cia_export:
+    inputs:
+      - merged_content
+    outputs:
+      - subs2cia_subtitle
+  tandoku_subtitles_subs2cia_process:
+    inputs:
+      - subs2cia_subtitle
+      - final_video
+    outputs:
+      - temp_subs2cia_tsv
+      - temp_subs2cia_audio_clips
+      - temp_subs2cia_images
+  tandoku_subtitles_subs2cia_import:
+    inputs:
+      - temp_subs2cia_tsv
+      - temp_subs2cia_audio_clips
+      - temp_subs2cia_images
+      - merged_content
+    outputs:
+      - audio_clips
+      - images
+      - subs2cia_content
+
+  tandoku_content_finalize:
+    inputs:
+      - subs2cia_content
+
+  tandoku_video_init:
+    inputs:
+      - volume_info
+      - src_video
+    outputs:
+      - initial_video
+  tandoku_video_clean:
+    inputs:
+      - initial_video
+    outputs:
+      - clean_video
+  tandoku_video_finalize:
+    inputs:
+      - clean_video
+    outputs:
+      - final_video
+  tandoku_video_export:
+    inputs:
+      - final_subtitle
+      - final_video
+    outputs:
+      - exported_video
+      - exported_subtitles
+
+  tandoku_content_transform_film:
+    inputs:
+       - initial_content
+    outputs:
+      - transformed_content

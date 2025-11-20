@@ -1,0 +1,197 @@
+﻿namespace Tandoku.Content.Transforms;
+
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO.Abstractions;
+using CsvHelper;
+using CsvHelper.Configuration;
+
+public sealed class ImportMediaTransform : IContentBlockTransform
+{
+    private readonly IFileSystem fileSystem;
+    private readonly MediaCollection mediaCollection;
+    private readonly IDirectoryInfo mediaDir;
+    private readonly string? imagePrefix;
+    private readonly string? audioPrefix;
+
+    private string? currentFileBaseName;
+    private ImmutableDictionary<MediaKey, MediaRecord> currentFileMedia =
+        ImmutableDictionary<MediaKey, MediaRecord>.Empty;
+
+    public ImportMediaTransform(
+        string mediaPath,
+        string? imagePrefix,
+        string? audioPrefix,
+        MediaCollection mediaCollection,
+        IFileSystem? fileSystem = null)
+    {
+        this.fileSystem = fileSystem ?? new FileSystem();
+        this.mediaDir = this.fileSystem.GetDirectory(mediaPath);
+        this.imagePrefix = imagePrefix;
+        this.audioPrefix = audioPrefix;
+        this.mediaCollection = mediaCollection;
+    }
+
+    public async IAsyncEnumerable<ContentBlock> TransformAsync(IAsyncEnumerable<ContentBlock> blocks, IFileInfo file)
+    {
+        await this.LoadCurrentFileMediaAsync(file);
+
+        await foreach (var block in blocks)
+            yield return this.TransformBlock(block);
+    }
+
+    private ContentBlock TransformBlock(ContentBlock block)
+    {
+        if (block.Source?.Ordinal is not null)
+        {
+            block = this.ImportMedia(
+                block,
+                new MediaKey(null, block.Source.Ordinal.Value));
+        }
+        else if (block.References.FirstOrDefault() is var reference &&
+            reference.Value.Source?.Ordinal is not null)
+        {
+            block = this.ImportMedia(
+                block,
+                new MediaKey(reference.Key, reference.Value.Source.Ordinal.Value));
+        }
+        return block;
+    }
+
+    private ContentBlock ImportMedia(ContentBlock block, MediaKey mediaKey)
+    {
+        if (this.currentFileBaseName is null)
+            throw new InvalidOperationException();
+
+        if (!this.currentFileMedia.TryGetValue(mediaKey, out var record))
+            return block;
+
+        var mediaSubdir = this.mediaDir.GetSubdirectory(this.currentFileBaseName);
+
+        var imageFile = mediaSubdir.GetFile(record.ImageName);
+        if (imageFile.Exists)
+        {
+            block = block with
+            {
+                // TODO - include content baseName in image/audio path
+                Image = new BlockImage { Name = $"{this.imagePrefix}{imageFile.Name}" },
+            };
+            this.mediaCollection.Images.Add(imageFile.FullName);
+        }
+
+        if (mediaKey.RefName is null)
+        {
+            var audioFile = mediaSubdir.GetFile(record.AudioName);
+            if (audioFile.Exists)
+            {
+                block = block with
+                {
+                    // TODO - include content baseName in image/audio path
+                    Audio = new ContentBlockAudio { Name = $"{this.audioPrefix}{audioFile.Name}" },
+                };
+                this.mediaCollection.Audio.Add(audioFile.FullName);
+            }
+        }
+
+        return block;
+    }
+
+    private async Task LoadCurrentFileMediaAsync(IFileInfo file)
+    {
+        var baseName = file.GetBaseName();
+        if (string.IsNullOrEmpty(baseName))
+            throw new InvalidOperationException($"Cannot derive base name from {file}");
+
+        var metadataFile = this.mediaDir.GetSubdirectory(baseName).GetFile($"{baseName}.tsv");
+        if (!metadataFile.Exists)
+            throw new InvalidOperationException($"Missing media metadata file {metadataFile}");
+
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            Delimiter = "\t",
+            HasHeaderRecord = false,
+        };
+        using var streamReader = metadataFile.OpenText();
+        using var csvReader = new CsvReader(streamReader, csvConfig);
+
+        var map = ImmutableDictionary.CreateBuilder<MediaKey, MediaRecord>();
+
+        while (await csvReader.ReadAsync())
+        {
+            if (csvReader.ColumnCount != 6)
+                throw new InvalidDataException($"Invalid row with {csvReader.ColumnCount} columns in {metadataFile}");
+
+            var mediaKey = ParseMediaKeyFromText(csvReader[0]);
+            var audio = ParseAudio(csvReader[2]);
+            var image = ParseImage(csvReader[3]);
+
+            var record = new MediaRecord(image, audio);
+
+            map.Add(mediaKey, record);
+        }
+
+        this.currentFileBaseName = baseName;
+        this.currentFileMedia = map.ToImmutable();
+
+        MediaKey ParseMediaKeyFromText(string? text)
+        {
+            // Parse out subtitle text generated by SubtitleGenerator with purpose = MediaExtraction, either:
+            // <content-name>|<ordinal>
+            // OR
+            // <content-name>|<ref-name>|<ordinal>
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var split = text.Split('|');
+                if (split.Length > 1 &&
+                    int.TryParse(split.Last(), CultureInfo.InvariantCulture, out var ordinal))
+                {
+                    var refName = split.Length > 2 ? split[1] : null;
+                    return new MediaKey(refName, ordinal);
+                }
+            }
+            throw new InvalidDataException($"Unexpected text '{text}' in {metadataFile}");
+        }
+
+        string ParseAudio(string? audio)
+        {
+            // Parse out audio reference (Anki format):
+            // [sound:<filename>]
+            return audio is not null && TryParseInfix(audio, "[sound:", "]", out var value) ?
+                value :
+                throw new InvalidDataException($"Unexpected audio '{audio}' in {metadataFile}");
+        }
+
+        string ParseImage(string? image)
+        {
+            // Parse out image reference (Anki format):
+            // <img src='<filename>'>
+            return image is not null && TryParseInfix(image, "<img src='", "'>", out var value) ?
+                value :
+                throw new InvalidDataException($"Unexpected audio '{image}' in {metadataFile}");
+        }
+
+        bool TryParseInfix(string s, string prefix, string suffix, [NotNullWhen(true)] out string? value)
+        {
+            if (s.StartsWith(prefix, StringComparison.Ordinal) &&
+                s.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                value = s.Substring(prefix.Length, s.Length - prefix.Length - suffix.Length);
+                return true;
+            }
+            value = null;
+            return false;
+        }
+    }
+
+    private sealed record MediaKey(string? RefName, int Ordinal);
+    private sealed record MediaRecord(string ImageName, string AudioName);
+}
+
+public sealed class MediaCollection
+{
+    public List<string> Images { get; } = [];
+    public List<string> Audio { get; } = [];
+}

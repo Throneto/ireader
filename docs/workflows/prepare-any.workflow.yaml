@@ -1,0 +1,128 @@
+stage: prepare
+artifacts:
+  src_any_original:
+    summary: Original source file in unsupported format, to be converted to supported format.
+    container: volume
+    location: source/{reflang?}/original/
+    sourceControl: binary
+  src_any_investigate:
+    summary: Source files to investigate.
+    container: volume
+    location: source/{reflang?}/investigate/
+    sourceControl: binary
+  src_any_unused:
+    summary: Source files that are currently unused.
+    container: volume
+    location: source/{reflang?}/unused/
+    sourceControl: binary
+
+  initial_content:
+    container: volume
+    location: content/{reflang?}/00-initial/
+    sourceControl: text
+  transformed_content:
+    container: volume
+    location: content/{reflang?}/20-transformed/
+    sourceControl: text
+  merged_content:
+    container: volume
+    location: content/40-merged/
+    sourceControl: text
+  tokenized_content:
+    container: volume
+    location: content/90-tokenized/
+    sourceControl: text
+  final_content:
+    container: volume
+    location: content/ff-final/
+    sourceControl: text
+    notes: |-
+      TBD - is the /ff-final/ directory needed to use dvc pipelines? Remove later?
+      But also - not sure if 'final' content really makes sense at least for now.
+      Individual workflows should probably depend directly on needed stages.
+
+  images:
+    container: volume
+    location: images/
+    sourceControl: binary
+  
+  image_text:
+    container: volume
+    location: images/text/
+    sourceControl: binary
+
+  exported_markdown:
+    container: volume
+    location: export/
+    sourceControl: text
+  exported_kindle_book:
+    container: staging
+    location: kindle/export/
+
+simpleValues:
+  src_language:
+    summary: Auto (default), None or a language code
+  src_folder:
+    summary: empty (default), original, investigate, unused, ...
+
+operations:
+  wikipedia_lookup:
+    outputs:
+      - volume_title
+      - original_media
+
+  tandoku_source_import:
+    summary: |-
+      Copies files specified by importPath to volume source directory.
+      Automatically infers language from *.{lang}.{ext} filename if language is auto.
+    inputs:
+      - volume_info
+      - src_language
+      - src_folder
+    outputs:
+      - src_any_investigate
+      - src_any_original
+      - src_any_unused
+    status: next
+
+  tandoku_images_recognizetext:
+    inputs:
+      - images
+    outputs:
+      - image_text
+  tandoku_images_contentgen:
+    inputs:
+      - images
+      - image_text
+    outputs:
+      - initial_content
+
+  tandoku_content_merge:
+    inputs:
+      - transformed_content
+    outputs:
+      - merged_content
+  tandoku_content_finalize:
+    #TODO: this is template specific, should just be defined in specific templates?
+    #inputs:
+    #  - merged_content
+    outputs:
+      - final_content
+  tandoku_content_tokenize:
+    inputs:
+      - final_content
+    outputs:
+       - tokenized_content
+
+  tandoku_markdown_export:
+    inputs:
+      - final_content
+      - images
+    outputs:
+      - exported_markdown
+  tandoku_kindle_export:
+    inputs:
+      - exported_markdown
+      - images
+    outputs:
+      - exported_kindle_book

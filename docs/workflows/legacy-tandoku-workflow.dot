@@ -1,0 +1,212 @@
+# TODO: consider generating this from spreadsheet data using PSGraph
+# (or create workflow definition in YAML, import to spreadsheet and generate graph from YAML)
+digraph {
+    graph [fontname="Helvetica"];
+    node [fontname="Helvetica" penwidth=0.2];
+    edge [fontname="Helvetica" arrowsize="0.6"];
+
+# subprocess example
+    calibre_ebook
+    calibre_ebook_metadata
+
+    tandoku_calibre_import[shape=plain style=filled fillcolor=blue fontcolor=white label=<
+<TABLE BORDER="0">
+    <TR><TD>tandoku_calibre_import</TD></TR>
+    <TR><TD BGCOLOR="skyblue" PORT="p1">tandoku_volume_new</TD></TR>
+    <TR><TD BGCOLOR="skyblue" PORT="p2">tandoku_source_import</TD></TR>
+</TABLE>
+>]
+    tandoku_volume_new
+    tandoku_source_import
+
+    src_ebook
+    src_ebook_metadata
+
+    calibre_ebook -> tandoku_calibre_import
+    calibre_ebook_metadata -> tandoku_calibre_import
+    tandoku_source_import -> src_ebook
+    tandoku_source_import -> src_ebook_metadata
+    tandoku_volume_new -> volume_metadata
+
+    tandoku_calibre_import:p1 -> tandoku_volume_new
+    tandoku_calibre_import:p2 -> tandoku_source_import
+
+    # duplicate inputs/outputs
+    calibre_ebook -> tandoku_source_import
+    calibre_ebook_metadata -> tandoku_source_import
+    tandoku_calibre_import -> src_ebook
+    tandoku_calibre_import -> src_ebook_metadata
+    tandoku_calibre_import -> volume_metadata
+# end subprocess example
+
+    # processes
+    node [shape=rect style="filled" fillcolor=blue fontcolor=white];
+    # TODO: align to new module-based API structure
+    #tandoku_new_volume
+
+    tandoku_export_tokens_csv
+
+    #tandoku_import
+    
+    ## source processes
+    #tandoku_source_import
+
+    ## film processes (subtitles, video)
+    #tandoku_subtitles_init
+    #tandoku_subtitles_clean
+    #tandoku_subtitles_align
+    #tandoku_subtitles_finalize
+    #tandoku_subtitles_contentgen
+
+    #tandoku_subtitles_subs2cia_export
+    #tandoku_subtitles_subs2cia_process
+    #tandoku_subtitles_subs2cia_import
+
+    #tandoku_video_init
+    #tandoku_video_clean
+    #tandoku_video_finalize
+    #tandoku_video_export
+
+    #tandoku_content_transform_film
+
+    ## content processes
+    #tandoku_content_merge
+    #tandoku_content_finalize
+    #tandoku_content_tokenize
+
+    ## markdown, kindle processses
+    #tandoku_markdown_export
+    #tandoku_kindle_generate
+
+    # artifacts
+    node [shape=rect style="filled,rounded" fillcolor=orange];
+    #volume_tdkv
+
+    #initial_content
+    #transformed_content
+    #merged_content
+    #tokenized_content
+    #final_content
+
+    #images
+
+    #audio_clips
+
+    tokens_csv
+
+    ## film artifacts
+    #external_subtitle
+    #src_subtitle
+    #initial_subtitle
+    #clean_subtitle
+    #aligned_subtitle
+    #final_subtitle
+
+    #external_video
+    #src_video
+    #initial_video
+    #clean_video
+    #final_video
+
+    #exported_video
+    #exported_subtitles
+
+    #subs2cia_subtitle
+    #temp_subs2cia_tsv
+    #temp_audio_clips
+    #temp_images
+    #subs2cia_content
+
+    ## markdown, kindle
+    #exported_markdown
+    #exported_kindle_book
+
+    # user input
+    node [shape=rect style="filled,rounded" fillcolor=green];
+    volume_input
+
+    # edges
+    #volume_input -> tandoku_new_volume
+    #tandoku_new_volume -> volume_tdkv
+
+    tokenized_content -> tandoku_export_tokens_csv
+    tandoku_export_tokens_csv -> tokens_csv
+
+    #external_subtitle -> tandoku_import
+    #external_video -> tandoku_import
+    #volume_tdkv -> tandoku_import
+    #tandoku_import -> tandoku_source_import
+    #tandoku_import -> tandoku_subtitles_init
+    #tandoku_import -> tandoku_video_init
+
+    #volume_tdkv -> tandoku_source_import
+
+    ## film edges
+    #external_subtitle -> tandoku_source_import
+    #tandoku_source_import -> src_subtitle
+    #src_subtitle -> tandoku_subtitles_init
+    #volume_tdkv -> tandoku_subtitles_init
+    #tandoku_subtitles_init -> initial_subtitle
+    #initial_subtitle -> tandoku_subtitles_clean
+    #tandoku_subtitles_clean -> clean_subtitle
+
+    #external_video -> tandoku_source_import
+    #tandoku_source_import -> src_video
+    #src_video -> tandoku_video_init
+    #volume_tdkv -> tandoku_video_init
+    #tandoku_video_init -> initial_video
+    #initial_video -> tandoku_video_clean
+    #tandoku_video_clean -> clean_video
+    #clean_video -> tandoku_video_finalize
+    #tandoku_video_finalize -> final_video
+
+    #clean_subtitle -> tandoku_subtitles_align
+    #final_video -> tandoku_subtitles_align
+    #tandoku_subtitles_align -> aligned_subtitle
+    #aligned_subtitle -> tandoku_subtitles_finalize
+    #tandoku_subtitles_finalize -> final_subtitle
+
+    #final_subtitle -> tandoku_video_export
+    #final_video -> tandoku_video_export
+    #tandoku_video_export -> exported_video
+    #tandoku_video_export -> exported_subtitles
+
+    #final_subtitle -> tandoku_subtitles_contentgen
+    #tandoku_subtitles_contentgen -> initial_content
+
+    #initial_content -> tandoku_content_transform_film
+    #tandoku_content_transform_film -> transformed_content
+
+    # merged_content -> tandoku_subtitles_subs2cia_export
+    # tandoku_subtitles_subs2cia_export -> subs2cia_subtitle
+    # subs2cia_subtitle -> tandoku_subtitles_subs2cia_process
+    # final_video -> tandoku_subtitles_subs2cia_process
+    # tandoku_subtitles_subs2cia_process -> temp_subs2cia_tsv
+    # tandoku_subtitles_subs2cia_process -> temp_audio_clips
+    # tandoku_subtitles_subs2cia_process -> temp_images
+    # temp_subs2cia_tsv -> tandoku_subtitles_subs2cia_import
+    # temp_audio_clips -> tandoku_subtitles_subs2cia_import
+    # temp_images -> tandoku_subtitles_subs2cia_import
+    # tandoku_subtitles_subs2cia_import -> audio_clips
+    # tandoku_subtitles_subs2cia_import -> images
+    # tandoku_subtitles_subs2cia_import -> subs2cia_content
+    # subs2cia_content -> tandoku_content_finalize
+
+    ## general content edges
+    #transformed_content -> tandoku_content_merge
+    #tandoku_content_merge -> merged_content
+    #merged_content -> tandoku_content_finalize
+    #tandoku_content_finalize -> final_content
+
+    #final_content -> tandoku_content_tokenize
+    #tandoku_content_tokenize -> tokenized_content
+
+    ## markdown export
+    #final_content -> tandoku_markdown_export
+    #images -> tandoku_markdown_export
+    #tandoku_markdown_export -> exported_markdown
+
+    ## kindle export
+    #exported_markdown -> tandoku_kindle_generate
+    #tandoku_kindle_generate -> exported_kindle_book
+}
