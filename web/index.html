@@ -97,6 +97,7 @@
           <button id="open-url" class="primary">打开</button>
           <input id="admin-password" type="password" placeholder="管理员密码" />
           <button id="login-btn">登录</button>
+          <span id="login-status" style="color: var(--muted);"></span>
           <button id="logout-btn" style="display:none">退出登录</button>
           <button id="prev">上一页</button>
           <button id="next">下一页</button>
@@ -156,6 +157,7 @@
       const adminPwInput = document.getElementById('admin-password');
       const loginBtn = document.getElementById('login-btn');
       const logoutBtn = document.getElementById('logout-btn');
+      const loginStatus = document.getElementById('login-status');
       const prevBtn = document.getElementById('prev');
       const nextBtn = document.getElementById('next');
       const prevBtn2 = document.getElementById('prev2');
@@ -265,7 +267,7 @@
           alert('加载书籍失败：' + e.message);
           return;
         }
-        rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value, allowScriptedContent: true });
+        rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value, allowScriptedContent: false });
         await rendition.display(startCfi || undefined);
         initThemes();
         applyReaderWidth();
@@ -337,8 +339,12 @@
       async function login() {
         const pw = adminPwInput.value.trim();
         if (!pw) return;
-        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
-        if (res.ok) { const j = await res.json(); csrfToken = j.csrf; serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none'; logoutBtn.style.display = ''; await refreshServerLibrary(); } else { alert('登录失败'); }
+        try {
+          loginBtn.disabled = true; loginStatus.textContent = '登录中...';
+          const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+          if (res.ok) { const j = await res.json(); csrfToken = j.csrf; serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none'; logoutBtn.style.display = ''; loginStatus.textContent = '已登录'; await refreshServerLibrary(); } else { loginStatus.textContent = '登录失败'; }
+        } catch(e) { loginStatus.textContent = '服务器错误'; }
+        finally { loginBtn.disabled = false; }
       }
       loginBtn.addEventListener('click', login);
 
@@ -423,12 +429,36 @@
       }
 
       async function extractMeta(buffer, defaults) {
-        const tmp = ePub();
         let title = defaults && defaults.title ? defaults.title : '';
         let author = defaults && defaults.author ? defaults.author : '';
-        try { await tmp.open(buffer); } catch(e) {}
-        try { const md = await tmp.loaded.metadata; title = md.title || title; author = md.creator || author; } catch(e) {}
-        try { tmp.destroy(); } catch(e) {}
+        try {
+          const zip = await JSZip.loadAsync(buffer);
+          let container = zip.file('META-INF/container.xml') || zip.file('meta-inf/container.xml');
+          if (!container) {
+            const cand = Object.keys(zip.files).find(p => p.toLowerCase().endsWith('container.xml'));
+            if (cand) container = zip.file(cand);
+          }
+          let opfPath = null;
+          if (container) {
+            const cxml = await container.async('text');
+            const m = cxml.match(/full-path\s*=\s*"([^"]+)"/i);
+            if (m) opfPath = m[1];
+          }
+          if (!opfPath) {
+            const candOpf = Object.keys(zip.files).find(p => p.toLowerCase().endsWith('.opf'));
+            if (candOpf) opfPath = candOpf;
+          }
+          if (opfPath) {
+            const opf = zip.file(opfPath);
+            if (opf) {
+              const xml = await opf.async('text');
+              const tm = xml.match(/<dc:title[^>]*>([\s\S]*?)<\/dc:title>/i);
+              const am = xml.match(/<dc:creator[^>]*>([\s\S]*?)<\/dc:creator>/i);
+              if (tm && tm[1]) { title = tm[1].trim(); }
+              if (am && am[1]) { author = am[1].trim(); }
+            }
+          }
+        } catch(e) {}
         return { title, author };
       }
       document.addEventListener('DOMContentLoaded', async () => {
@@ -479,18 +509,38 @@
       }
 
       async function saveBookBuffer(buffer, defaults) {
-        const tmp = ePub();
         let title = defaults && defaults.title ? defaults.title : '';
         let author = defaults && defaults.author ? defaults.author : '';
-        try { await tmp.open(buffer); } catch(e) {}
         try {
-          const meta = await tmp.loaded.metadata;
-          title = meta.title || title;
-          author = meta.creator || author;
+          const zip = await JSZip.loadAsync(buffer);
+          let container = zip.file('META-INF/container.xml') || zip.file('meta-inf/container.xml');
+          if (!container) {
+            const cand = Object.keys(zip.files).find(p => p.toLowerCase().endsWith('container.xml'));
+            if (cand) container = zip.file(cand);
+          }
+          let opfPath = null;
+          if (container) {
+            const cxml = await container.async('text');
+            const m = cxml.match(/full-path\s*=\s*"([^"]+)"/i);
+            if (m) opfPath = m[1];
+          }
+          if (!opfPath) {
+            const candOpf = Object.keys(zip.files).find(p => p.toLowerCase().endsWith('.opf'));
+            if (candOpf) opfPath = candOpf;
+          }
+          if (opfPath) {
+            const opf = zip.file(opfPath);
+            if (opf) {
+              const xml = await opf.async('text');
+              const tm = xml.match(/<dc:title[^>]*>([\s\S]*?)<\/dc:title>/i);
+              const am = xml.match(/<dc:creator[^>]*>([\s\S]*?)<\/dc:creator>/i);
+              if (tm && tm[1]) { title = tm[1].trim(); }
+              if (am && am[1]) { author = am[1].trim(); }
+            }
+          }
         } catch(e) {}
         const rec = { title, author, size: (defaults && defaults.size) ? defaults.size : (buffer.byteLength || 0), createdAt: Date.now(), updatedAt: Date.now(), blob: buffer };
         const id = await db.add('books', rec);
-        try { tmp.destroy(); } catch(e) {}
         return id;
       }
 
