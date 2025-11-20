@@ -59,7 +59,7 @@ if ($ZipArchive) {
 
 if ($Format -eq 'Book') {
     # TODO - either need to use footnotes or add blurtext.css stylesheet
-    #pandoc $markdownFiles -f commonmark+footnotes -o $targetPath -t chunkedhtml --metadata title="$title" --metadata author="ireader" --metadata lang=ja
+    #pandoc $markdownFiles -f commonmark+footnotes -o $targetPath -t chunkedhtml --metadata title="$title" --metadata author="ireadervalar" --metadata lang=ja
     #ExpandArchive -Path $targetPath -DestinationPath $tempDestination -ClobberDestination
     throw "Book format not fully implemented"
 } elseif ($Format -eq 'Slides') {
@@ -72,7 +72,7 @@ if ($Format -eq 'Book') {
             pandoc $_ -f commonmark -o $htmlFilePath -t slidy --standalone `
                 --css ./styles/blurtext.css --variable=slidy-url:. `
                 --metadata title="$title - $sectionTitle" `
-                --metadata author="ireader" --metadata lang=ja
+                --metadata author="ireadervalar" --metadata lang=ja
             return [PSCustomObject]@{
                 SectionTitle = $sectionTitle
                 FileName = Split-Path $htmlFilePath -Leaf
@@ -102,7 +102,7 @@ if ($Format -eq 'Book') {
         Join-String -Separator ([Environment]::NewLine) |
         pandoc -f commonmark -o $indexHtmlPath -t html --standalone `
             --metadata title="$title" `
-            --metadata author="ireader" --metadata lang=ja
+            --metadata author="ireadervalar" --metadata lang=ja
 
     # Copy additional resources
     CreateDirectoryIfNotExists "$targetDirectory/scripts"

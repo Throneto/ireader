@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,6 +6,8 @@
     <AssemblyName>tandoku-reader</AssemblyName>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <Product>ireadervalar</Product>
+    <Company>ireadervalar</Company>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
