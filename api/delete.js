@@ -1,18 +1,19 @@
 export const config = { runtime: 'nodejs' }
 import { del } from '@vercel/blob'
 import { verifySession } from './_shared/session.js'
-export default async function handler(req) {
+export default async function handler(req, res) {
   const ok = await verifySession(req)
-  if (!ok) return new Response('Unauthorized', { status: 401 })
-  if (req.method !== 'DELETE') return new Response('Method Not Allowed', { status: 405 })
-  const token = req.headers.get('x-csrf-token')
-  const c = req.headers.get('cookie') || ''
+  if (!ok) { res.statusCode = 401; return res.end('Unauthorized') }
+  if (req.method !== 'DELETE') { res.statusCode = 405; return res.end('Method Not Allowed') }
+  const token = (req.headers['x-csrf-token'] || req.headers['X-CSRF-Token'] || req.headers['x-csrf-token'])
+  const c = req.headers.cookie || ''
   const csrf = c.split(';').map(s=>s.trim()).find(x=>x.startsWith('csrf='))
   const cookieVal = csrf ? csrf.slice('csrf='.length) : ''
-  if (!token || token !== cookieVal) return new Response('Forbidden', { status: 403 })
-  const url = new URL(req.url)
+  if (!token || token !== cookieVal) { res.statusCode = 403; return res.end('Forbidden') }
+  const url = new URL(req.url, 'http://localhost')
   const id = url.searchParams.get('id')
-  if (!id) return new Response('Bad Request', { status: 400 })
+  if (!id) { res.statusCode = 400; return res.end('Bad Request') }
   await del(id)
-  return new Response(null, { status: 204 })
+  res.statusCode = 204
+  res.end()
 }

@@ -1,5 +1,9 @@
 function getCookie(req, name) {
-  const c = req.headers.get('cookie') || ''
+  let c = ''
+  try {
+    if (typeof req.headers?.get === 'function') c = req.headers.get('cookie') || ''
+    else c = req.headers?.cookie || req.headers?.Cookie || ''
+  } catch { c = '' }
   const part = c.split(';').map(s=>s.trim()).find(x=>x.startsWith(name+'='))
   return part ? part.slice(name.length+1) : null
 }

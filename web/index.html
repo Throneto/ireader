@@ -412,9 +412,7 @@
 
       async function uploadToServer(file) {
         if (!serverLoggedIn) return;
-        const fd = new FormData();
-        fd.append('file', file, file.name || 'book.epub');
-        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/epub+zip', 'X-Filename': file.name || 'book.epub' }, body: await file.arrayBuffer() });
         if (res.ok) {
           const j = await res.json();
           try {
