@@ -1,9 +1,8 @@
+import crypto from 'node:crypto'
 export async function hmacHex(secret, data) {
-  const enc = new TextEncoder()
-  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(data))
-  const b = new Uint8Array(sig)
-  return Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('')
+  const h = crypto.createHmac('sha256', secret)
+  h.update(data)
+  return h.digest('hex')
 }
 
 export async function createSessionCookieHeader(user) {
