@@ -122,6 +122,8 @@
 
       <div class="layout">
         <aside class="sidebar">
+          <h3>书库</h3>
+          <div class="toc" id="library"></div>
           <h3>目录</h3>
           <div class="toc" id="toc"></div>
           <div class="meta" id="meta">未加载书籍</div>
@@ -140,6 +142,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3/dist/epub.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
     <script>
       const appEl = document.getElementById('app');
       const fileInput = document.getElementById('file-input');
@@ -159,11 +162,15 @@
       const locInfo = document.getElementById('loc-info');
       const widthModeSel = document.getElementById('width-mode');
       const widthRange = document.getElementById('width');
+      const libraryEl = document.getElementById('library');
 
       let book = null;
       let rendition = null;
       let blobUrl = null;
       let locationsReady = false;
+      let currentBookId = null;
+      let db = null;
+      let dbReady = false;
 
       function reset() {
         if (rendition) { try { rendition.destroy(); } catch (e) {} rendition = null; }
@@ -218,16 +225,28 @@
           const pct = Math.round(book.locations.percentageFromCfi(cfi) * 100);
           progressBar.style.width = pct + '%';
           locInfo.textContent = pct + '%';
+          if (currentBookId && dbReady) {
+            const dt = Date.now();
+            db.put('reading', { bookId: currentBookId, lastCfi: cfi, lastPct: pct, updatedAt: dt });
+            db.get('books', currentBookId).then(rec => { if (rec) { rec.updatedAt = dt; db.put('books', rec); } });
+          }
         } catch (e) { }
       }
 
-      async function loadBook(source) {
+      async function loadBook(source, startCfi) {
         reset();
         try {
           if (source instanceof File) {
             book = ePub();
             const buffer = await source.arrayBuffer();
             await book.open(buffer);
+          } else if (source instanceof Blob) {
+            book = ePub();
+            const buffer = await source.arrayBuffer();
+            await book.open(buffer);
+          } else if (source && source.byteLength !== undefined) {
+            book = ePub();
+            await book.open(source);
           } else {
             book = ePub(source);
           }
@@ -237,7 +256,7 @@
         }
         rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value });
         initThemes();
-        await rendition.display();
+        await rendition.display(startCfi || undefined);
         applyReaderWidth();
         footerEl.hidden = false;
 
@@ -273,30 +292,139 @@
       fileInput.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        await loadBook(file);
+        await importFileAndOpen(file);
       });
 
       openUrlBtn.addEventListener('click', async () => {
         const url = urlInput.value.trim();
         if (!url) return;
-        await loadBook(url);
+        await importUrlAndOpen(url);
       });
 
       prevBtn.addEventListener('click', () => rendition && rendition.prev());
       nextBtn.addEventListener('click', () => rendition && rendition.next());
       prevBtn2.addEventListener('click', () => rendition && rendition.prev());
       nextBtn2.addEventListener('click', () => rendition && rendition.next());
-      themeSel.addEventListener('change', (e) => { appEl.setAttribute('data-theme', e.target.value === 'dark' ? 'dark' : 'light'); rendition && rendition.themes.select(e.target.value); });
-      fontSize.addEventListener('input', (e) => rendition && rendition.themes.fontSize(e.target.value + '%'));
-      spreadSel.addEventListener('change', updateSpread);
-      widthModeSel.addEventListener('change', applyReaderWidth);
-      widthRange.addEventListener('input', applyReaderWidth);
+      themeSel.addEventListener('change', (e) => { appEl.setAttribute('data-theme', e.target.value === 'dark' ? 'dark' : 'light'); rendition && rendition.themes.select(e.target.value); saveSetting('theme', e.target.value); });
+      fontSize.addEventListener('input', (e) => { rendition && rendition.themes.fontSize(e.target.value + '%'); saveSetting('fontSize', e.target.value); });
+      spreadSel.addEventListener('change', (e) => { updateSpread(); saveSetting('spread', e.target.value); });
+      widthModeSel.addEventListener('change', (e) => { applyReaderWidth(); saveSetting('widthMode', e.target.value); });
+      widthRange.addEventListener('input', (e) => { applyReaderWidth(); saveSetting('width', e.target.value); });
 
       window.addEventListener('keydown', (e) => {
         if (!rendition) return;
         if (e.key === 'ArrowRight') { rendition.next(); }
         if (e.key === 'ArrowLeft') { rendition.prev(); }
       });
+      document.addEventListener('DOMContentLoaded', async () => {
+        await ensureDB();
+        await refreshLibrary();
+        await loadSettings();
+        registerSW();
+      });
+
+      function registerSW() {
+        if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('./sw.js'); } catch(e) {} }
+      }
+
+      async function initDB() {
+        const { openDB } = idb;
+        db = await openDB('ireader', 1, {
+          upgrade(db) {
+            if (!db.objectStoreNames.contains('books')) {
+              const s = db.createObjectStore('books', { keyPath: 'id', autoIncrement: true });
+              s.createIndex('updatedAt', 'updatedAt');
+            }
+            if (!db.objectStoreNames.contains('reading')) {
+              db.createObjectStore('reading', { keyPath: 'bookId' });
+            }
+            if (!db.objectStoreNames.contains('settings')) {
+              db.createObjectStore('settings', { keyPath: 'id' });
+            }
+          }
+        });
+        dbReady = true;
+      }
+
+      async function ensureDB() { if (!dbReady) { await initDB(); } }
+
+      async function refreshLibrary() {
+        await ensureDB();
+        const books = await db.getAll('books');
+        libraryEl.innerHTML = '';
+        books.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+        books.forEach(b=>{
+          const a = document.createElement('a');
+          a.textContent = (b.title || '未命名') + (b.author ? ' · ' + b.author : '');
+          a.href = '#';
+          a.onclick = async (ev) => { ev.preventDefault(); await openBookFromDB(b.id); };
+          libraryEl.appendChild(a);
+        });
+      }
+
+      async function saveBookBuffer(buffer, defaults) {
+        const tmp = ePub();
+        let title = defaults && defaults.title ? defaults.title : '';
+        let author = defaults && defaults.author ? defaults.author : '';
+        try { await tmp.open(buffer); } catch(e) {}
+        try {
+          const meta = await tmp.loaded.metadata;
+          title = meta.title || title;
+          author = meta.creator || author;
+        } catch(e) {}
+        const rec = { title, author, size: (defaults && defaults.size) ? defaults.size : (buffer.byteLength || 0), createdAt: Date.now(), updatedAt: Date.now(), blob: buffer };
+        const id = await db.add('books', rec);
+        try { tmp.destroy(); } catch(e) {}
+        return id;
+      }
+
+      async function openBookFromDB(id) {
+        await ensureDB();
+        const rec = await db.get('books', id);
+        if (!rec) return;
+        const r = await db.get('reading', id);
+        currentBookId = id;
+        await loadBook(rec.blob, r && r.lastCfi ? r.lastCfi : null);
+      }
+
+      async function importFileAndOpen(file) {
+        await ensureDB();
+        const buffer = await file.arrayBuffer();
+        const id = await saveBookBuffer(buffer, { title: file.name, size: file.size });
+        const r = await db.get('reading', id);
+        currentBookId = id;
+        await refreshLibrary();
+        await loadBook(buffer, r && r.lastCfi ? r.lastCfi : null);
+      }
+
+      async function importUrlAndOpen(url) {
+        await ensureDB();
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const buffer = await blob.arrayBuffer();
+        const id = await saveBookBuffer(buffer, { title: url.split('/').pop() || url, size: blob.size });
+        const r = await db.get('reading', id);
+        currentBookId = id;
+        await refreshLibrary();
+        await loadBook(buffer, r && r.lastCfi ? r.lastCfi : null);
+      }
+
+      function saveSetting(id, value) { if (!dbReady) return; try { db.put('settings', { id, value }); } catch(e) {} }
+
+      async function loadSettings() {
+        await ensureDB();
+        const t = await db.get('settings', 'theme');
+        if (t && t.value) { themeSel.value = t.value; appEl.setAttribute('data-theme', t.value === 'dark' ? 'dark' : 'light'); }
+        const fs = await db.get('settings', 'fontSize');
+        if (fs && fs.value) { fontSize.value = String(fs.value); }
+        const sp = await db.get('settings', 'spread');
+        if (sp && sp.value) { spreadSel.value = sp.value; }
+        const wm = await db.get('settings', 'widthMode');
+        if (wm && wm.value) { widthModeSel.value = wm.value; }
+        const w = await db.get('settings', 'width');
+        if (w && w.value) { widthRange.value = String(w.value); }
+        applyReaderWidth();
+      }
     </script>
   </body>
 </html>
