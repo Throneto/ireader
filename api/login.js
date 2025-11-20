@@ -11,5 +11,8 @@ export default async function handler(req) {
   const cookie = await createSessionCookieHeader('admin')
   const csrf = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
   const csrfCookie = `csrf=${csrf}; Path=/; SameSite=Lax; Max-Age=${60*60*24*7}`
-  return new Response(JSON.stringify({ ok: true, csrf }), { status: 200, headers: { 'Set-Cookie': `${cookie}\n${csrfCookie}`, 'Content-Type': 'application/json' } })
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  headers.append('Set-Cookie', cookie)
+  headers.append('Set-Cookie', csrfCookie)
+  return new Response(JSON.stringify({ ok: true, csrf }), { status: 200, headers })
 }
