@@ -58,8 +58,10 @@
       .sidebar .toc a:hover { background: #ffffff1a; }
       .sidebar .meta { border-top: 1px solid #e5e7eb33; padding: 10px 12px; font-size: 12px; color: var(--muted); }
 
-      #viewer { position: relative; min-height: 0; }
+      #viewer { position: relative; min-height: 0; display: flex; justify-content: center; }
       #reader { width: 100%; height: calc(100vh - 60px); }
+      .reader-fixed #reader { width: var(--reader-fixed-width, 820px); max-width: var(--reader-fixed-width, 820px); }
+      .reader-fixed .footer { left: 50%; right: auto; transform: translateX(-50%); width: var(--reader-fixed-width, 820px); }
       .footer {
         position: absolute; bottom: 10px; left: 10px; right: 10px;
         display: flex; gap: 10px; align-items: center;
@@ -96,6 +98,12 @@
             <option value="none">单页</option>
             <option value="auto" selected>自动</option>
           </select>
+          <label for="width-mode">窗口</label>
+          <select id="width-mode">
+            <option value="auto" selected>自适应</option>
+            <option value="fixed">固定</option>
+          </select>
+          <input id="width" type="range" min="600" max="1200" value="820" />
         </div>
         <div class="spacer"></div>
       </header>
@@ -137,6 +145,8 @@
       const footerEl = document.getElementById('footer');
       const progressBar = document.getElementById('progress-bar');
       const locInfo = document.getElementById('loc-info');
+      const widthModeSel = document.getElementById('width-mode');
+      const widthRange = document.getElementById('width');
 
       let book = null;
       let rendition = null;
@@ -170,6 +180,24 @@
         rendition.spread(spread);
       }
 
+      function applyReaderWidth() {
+        const mode = widthModeSel.value;
+        const wpx = parseInt(widthRange.value, 10);
+        if (mode === 'fixed') {
+          appEl.classList.add('reader-fixed');
+          appEl.style.setProperty('--reader-fixed-width', wpx + 'px');
+        } else {
+          appEl.classList.remove('reader-fixed');
+        }
+        if (rendition) {
+          const readerEl = document.getElementById('reader');
+          const w = readerEl.clientWidth;
+          const h = readerEl.clientHeight;
+          try { rendition.resize(w, h); } catch (e) {}
+        }
+        widthRange.style.display = mode === 'fixed' ? '' : 'none';
+      }
+
       function updateProgress(loc) {
         if (!book || !locationsReady) return;
         const cfi = loc && loc.start ? loc.start.cfi : rendition && rendition.location && rendition.location.start ? rendition.location.start.cfi : null;
@@ -198,6 +226,7 @@
         rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value });
         initThemes();
         await rendition.display();
+        applyReaderWidth();
         footerEl.hidden = false;
 
         try {
@@ -248,6 +277,8 @@
       themeSel.addEventListener('change', (e) => { appEl.setAttribute('data-theme', e.target.value === 'dark' ? 'dark' : 'light'); rendition && rendition.themes.select(e.target.value); });
       fontSize.addEventListener('input', (e) => rendition && rendition.themes.fontSize(e.target.value + '%'));
       spreadSel.addEventListener('change', updateSpread);
+      widthModeSel.addEventListener('change', applyReaderWidth);
+      widthRange.addEventListener('input', applyReaderWidth);
 
       window.addEventListener('keydown', (e) => {
         if (!rendition) return;
