@@ -1,12 +1,12 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
-using Tandoku.Volume;
+using Ireadervalar.Volume;
 
 public sealed partial class Program
 {
     private Command CreateSourceCommand() =>
-        new("source", "Commands for working with tandoku volume sources")
+        new("source", "Commands for working with ireadervalar volume sources")
         {
             this.CreateSourceImportCommand(),
         };

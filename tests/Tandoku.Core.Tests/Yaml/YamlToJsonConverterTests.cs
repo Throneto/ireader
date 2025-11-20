@@ -1,9 +1,9 @@
-﻿namespace Tandoku.Tests.Yaml;
+namespace Tandoku.Tests.Yaml;
 
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
-using Tandoku.Yaml;
+using Ireadervalar.Yaml;
 
 public class YamlToJsonConverterTests
 {

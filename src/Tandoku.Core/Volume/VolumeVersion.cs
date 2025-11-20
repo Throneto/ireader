@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Volume;
+namespace Ireadervalar.Volume;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Tandoku.Packaging;
+using Ireadervalar.Packaging;
 
 public sealed record VolumeVersion : IPackageVersion<VolumeVersion>
 {

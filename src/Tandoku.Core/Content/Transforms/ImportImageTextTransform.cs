@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Content.Transforms;
+namespace Ireadervalar.Content.Transforms;
 
 using System.IO.Abstractions;
-using Tandoku.Images;
-using Tandoku.Volume;
+using Ireadervalar.Images;
+using Ireadervalar.Volume;
 
 public sealed class ImportImageTextTransform : IContentBlockTransform
 {

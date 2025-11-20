@@ -1,4 +1,4 @@
-﻿namespace Tandoku.CommandLine.Abstractions;
+namespace Ireadervalar.CommandLine.Abstractions;
 
 public class SystemEnvironment : IEnvironment
 {

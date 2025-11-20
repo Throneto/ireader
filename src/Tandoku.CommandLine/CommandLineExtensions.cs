@@ -1,4 +1,4 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
 using System.CommandLine.IO;

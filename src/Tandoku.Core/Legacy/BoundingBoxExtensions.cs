@@ -1,4 +1,4 @@
-﻿namespace Tandoku;
+namespace Ireadervalar.Legacy;
 
 using System.Drawing;
 

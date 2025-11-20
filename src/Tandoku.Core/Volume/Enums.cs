@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Volume;
+namespace Ireadervalar.Volume;
 
 public enum ExpandedScope
 {

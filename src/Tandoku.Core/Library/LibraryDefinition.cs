@@ -1,6 +1,6 @@
-﻿namespace Tandoku.Library;
+namespace Ireadervalar.Library;
 
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 
 public sealed record LibraryDefinition : IYamlSerializable<LibraryDefinition>
 {

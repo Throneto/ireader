@@ -1,4 +1,4 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
 using System.CommandLine.Builder;
@@ -8,7 +8,8 @@ using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
 using System.IO.Abstractions;
 using System.Text;
-using Tandoku.CommandLine.Abstractions;
+using Ireadervalar.CommandLine.Abstractions;
+using Ireadervalar.Legacy;
 
 public sealed partial class Program
 {
@@ -108,7 +109,7 @@ public sealed partial class Program
 
     private RootCommand CreateRootCommand()
     {
-        var rootCommand = new RootCommand("Command-line interface for tandoku")
+        var rootCommand = new RootCommand("Command-line interface for ireadervalar")
         {
             this.CreateLibraryCommand(),
             this.CreateVolumeCommand(),
@@ -138,7 +139,7 @@ public sealed partial class Program
         var outputOpt = new Option<FileInfo>(new[] { "-o", "--out" }, "Output file path").LegalFilePathsOnly();
         var appendOpt = new Option<bool>(new[] { "-a", "--append" }, "Append to existing content");
         var forceOpt = new Option<bool>(new[] { "-f", "--force", "--overwrite" }, "Overwrite existing content");
-        var command = new Command("generate", "Generate tandoku content from various input formats")
+        var command = new Command("generate", "Generate ireadervalar content from various input formats")
         {
             inputArg,
             inputTypeOpt,
@@ -164,7 +165,7 @@ public sealed partial class Program
         var inputArg = new Argument<FileSystemInfo>("in", "Input file or path").ExistingOnly();
         var outputArg = new Argument<FileInfo>("out", "Output file path") { Arity = ArgumentArity.ZeroOrOne }.LegalFilePathsOnly();
         var formatOpt = new Option<ExportFormat>("--format", "Target file format");
-        var command = new Command("export", "Export content from tandoku library")
+        var command = new Command("export", "Export content from ireadervalar library")
         {
             inputArg,
             outputArg,

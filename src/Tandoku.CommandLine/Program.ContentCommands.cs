@@ -1,15 +1,15 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
-using Tandoku.Content;
-using Tandoku.Content.Alignment;
-using Tandoku.Content.Transforms;
-using Tandoku.Images;
+using Ireadervalar.Content;
+using Ireadervalar.Content.Alignment;
+using Ireadervalar.Content.Transforms;
+using Ireadervalar.Images;
 
 public sealed partial class Program
 {
     private Command CreateContentCommand() =>
-        new("content", "Commands for working with tandoku content streams")
+        new("content", "Commands for working with ireadervalar content streams")
         {
             this.CreateContentIndexCommand(),
             this.CreateContentSearchCommand(),
@@ -145,7 +145,7 @@ public sealed partial class Program
     private sealed class ContentTransforms(Program program)
     {
         internal Command CreateContentTransformCommand() =>
-            new("transform", "Commands for transforming tandoku content streams")
+            new("transform", "Commands for transforming ireadervalar content streams")
             {
                 this.CreateRemoveNonJapaneseTextCommand(),
                 this.CreateLowConfidenceTextCommand(),

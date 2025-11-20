@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Tandoku</RootNamespace>
+    <RootNamespace>Ireadervalar</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Product>ireadervalar</Product>
     <Company>ireadervalar</Company>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <CodeAnalysisRuleSet>..\..\tandoku.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\ireadervalar.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <CodeAnalysisRuleSet>..\..\tandoku.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\ireadervalar.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.0.1" />

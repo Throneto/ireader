@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.IO.Abstractions;
 

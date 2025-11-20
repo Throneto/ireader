@@ -1,4 +1,4 @@
-﻿namespace Tandoku;
+namespace Ireadervalar.Legacy;
 
 using System.Text.RegularExpressions;
 using System.Xml.Linq;

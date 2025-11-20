@@ -1,7 +1,7 @@
 namespace Tandoku.Tests.Library;
 
 using System.IO.Abstractions.TestingHelpers;
-using Tandoku.Library;
+using Ireadervalar.Library;
 
 public class LibraryManagerTests
 {
@@ -20,7 +20,7 @@ public class LibraryManagerTests
         info.Version.Should().Be(LibraryVersion.Latest);
         info.DefinitionPath.Should().Be(definitionPath);
         fileSystem.AllFiles.Count().Should().Be(2);
-        fileSystem.GetFile(fileSystem.Path.Join(info.Path, ".tandoku-library/version")).TextContents.Should().Be(
+        fileSystem.GetFile(fileSystem.Path.Join(info.Path, ".ireadervalar-library/version")).TextContents.Should().Be(
             LibraryVersion.Latest.Version.ToString());
         fileSystem.GetFile(definitionPath).TextContents.TrimEnd().Should().Be(
 @"language: ja");
@@ -89,7 +89,7 @@ public class LibraryManagerTests
         var libraryManager = new LibraryManager(fileSystem);
         var libraryRootPath = fileSystem.Path.Join(
             fileSystem.Directory.GetCurrentDirectory(),
-            "tandoku-library");
+            "ireadervalar-library");
 
         return (libraryManager, fileSystem, libraryRootPath);
     }

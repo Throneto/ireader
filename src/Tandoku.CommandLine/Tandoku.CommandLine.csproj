@@ -9,10 +9,10 @@
     <Company>ireadervalar</Company>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <CodeAnalysisRuleSet>..\..\tandoku.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\ireadervalar.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <CodeAnalysisRuleSet>..\..\tandoku.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\ireadervalar.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.Analysis.Kuromoji" Version="4.8.0-beta00016" />

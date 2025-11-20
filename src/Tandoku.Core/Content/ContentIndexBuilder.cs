@@ -1,10 +1,10 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.IO.Abstractions;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 
 public sealed class ContentIndexBuilder
 {

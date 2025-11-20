@@ -1,4 +1,4 @@
-﻿namespace Tandoku;
+namespace Ireadervalar.Legacy;
 
 internal static class FileStoreUtil
 {

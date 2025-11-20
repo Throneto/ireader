@@ -1,4 +1,4 @@
-﻿namespace Tandoku;
+namespace Ireadervalar.Legacy;
 
 using Markdig;
 using Markdig.Syntax;

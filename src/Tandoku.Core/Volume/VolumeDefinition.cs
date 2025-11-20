@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Volume;
+namespace Ireadervalar.Volume;
 
 using System.Collections.Immutable;
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 
 public sealed record VolumeDefinition : IYamlSerializable<VolumeDefinition>
 {

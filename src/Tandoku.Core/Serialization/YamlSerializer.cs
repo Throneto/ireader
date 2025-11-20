@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Serialization;
+namespace Ireadervalar.Serialization;
 
 using System.IO.Abstractions;
 

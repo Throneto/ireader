@@ -1,12 +1,12 @@
-﻿namespace Tandoku.Subtitles;
+namespace Ireadervalar.Subtitles;
 
 using System.IO.Abstractions;
 using System.Text;
 using System.Text.RegularExpressions;
 using Nikse.SubtitleEdit.Core.Common;
-using Tandoku.Content;
-using Tandoku.Serialization;
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Content;
+using Ireadervalar.Serialization;
+using Ireadervalar.Subtitles.WebVtt;
 
 public sealed class SubtitleContentGenerator
 {

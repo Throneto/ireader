@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Tests.Subtitles;
+namespace Tandoku.Tests.Subtitles;
 
-using Tandoku.Subtitles;
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Subtitles;
+using Ireadervalar.Subtitles.WebVtt;
 
 public class TtmlToWebVttConverterTests
 {

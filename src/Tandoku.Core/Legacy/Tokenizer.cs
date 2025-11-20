@@ -1,4 +1,4 @@
-﻿namespace Tandoku;
+namespace Ireadervalar.Legacy;
 
 using Lucene.Net.Analysis.Ja;
 using Lucene.Net.Analysis.Ja.TokenAttributes;

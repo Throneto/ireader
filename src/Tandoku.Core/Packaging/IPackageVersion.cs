@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Packaging;
+namespace Ireadervalar.Packaging;
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;

@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Images;
+namespace Ireadervalar.Images;
 
 using System.IO.Abstractions;
-using Tandoku.Content;
+using Ireadervalar.Content;
 
 public interface IImageAnalysisProvider
 {

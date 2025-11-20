@@ -1,30 +1,30 @@
 namespace Tandoku.CommandLine.Tests;
 
-using Tandoku.Library;
+using Ireadervalar.Library;
 
 public class LibraryCommandTests : CliTestBase
 {
     [Fact]
     public Task Init() => this.RunAndAssertAsync(
         "library init",
-        $"Initialized new tandoku library at {this.baseDirectory.FullName}");
+        $"Initialized new ireadervalar library at {this.baseDirectory.FullName}");
 
     [Fact]
     public Task InitWithPath() => this.RunAndAssertAsync(
-        "library init tandoku-library",
-        $"Initialized new tandoku library at {this.ToFullPath("tandoku-library")}");
+        "library init ireadervalar-library",
+        $"Initialized new ireadervalar library at {this.ToFullPath("ireadervalar-library")}");
 
     [Fact]
     public Task InitWithFullPath() => this.RunAndAssertAsync(
-        $"library init {this.ToFullPath("tandoku-library")}",
-        $"Initialized new tandoku library at {this.ToFullPath("tandoku-library")}");
+        $"library init {this.ToFullPath("ireadervalar-library")}",
+        $"Initialized new ireadervalar library at {this.ToFullPath("ireadervalar-library")}");
 
     [Fact]
     public async Task InitWithNonEmptyDirectory()
     {
-        this.fileSystem.AddEmptyFile(this.ToFullPath("tandoku-library", "existing.txt"));
+        this.fileSystem.AddEmptyFile(this.ToFullPath("ireadervalar-library", "existing.txt"));
         await this.RunAndAssertAsync(
-            "library init tandoku-library",
+            "library init ireadervalar-library",
             expectedOutput: string.Empty,
             expectedError: "The specified directory is not empty and force is not specified.");
     }
@@ -32,10 +32,10 @@ public class LibraryCommandTests : CliTestBase
     [Fact]
     public async Task InitWithNonEmptyDirectoryForce()
     {
-        this.fileSystem.AddEmptyFile(this.ToFullPath("tandoku-library", "existing.txt"));
+        this.fileSystem.AddEmptyFile(this.ToFullPath("ireadervalar-library", "existing.txt"));
         await this.RunAndAssertAsync(
-            "library init tandoku-library --force",
-            $"Initialized new tandoku library at {this.ToFullPath("tandoku-library")}");
+            "library init ireadervalar-library --force",
+            $"Initialized new ireadervalar library at {this.ToFullPath("ireadervalar-library")}");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class LibraryCommandTests : CliTestBase
 
         await this.RunAndAssertAsync(
             $"library info",
-            expectedError: "The specified path does not contain a tandoku library.");
+            expectedError: "The specified path does not contain a ireadervalar library.");
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class LibraryCommandTests : CliTestBase
     private Task<LibraryInfo> SetupLibrary()
     {
         var libraryManager = new LibraryManager(this.fileSystem);
-        var libraryRootPath = this.ToFullPath("tandoku-library");
+        var libraryRootPath = this.ToFullPath("ireadervalar-library");
         return libraryManager.InitializeAsync(libraryRootPath);
     }
 

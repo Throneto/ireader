@@ -1,4 +1,4 @@
-﻿#if REENABLE_WEBVTT_TESTS
+#if REENABLE_WEBVTT_TESTS
 // ---------------------------------------------------------------------------
 // <copyright file="WebVttParserTest.cs" owner="svm-git">
 //
@@ -27,7 +27,7 @@
 
 namespace Tandoku.Tests.Subtitles;
 
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Subtitles.WebVtt;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [TestClass]

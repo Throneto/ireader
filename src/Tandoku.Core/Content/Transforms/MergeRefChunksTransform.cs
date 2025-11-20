@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Content.Transforms;
+namespace Ireadervalar.Content.Transforms;
 
 using System.Collections.Generic;
 

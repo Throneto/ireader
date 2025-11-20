@@ -1,7 +1,7 @@
-﻿namespace Tandoku.CommandLine.Tests;
+namespace Tandoku.CommandLine.Tests;
 
-using Tandoku.Library;
-using Tandoku.Volume;
+using Ireadervalar.Library;
+using Ireadervalar.Volume;
 
 public class VolumeCommandTests : CliTestBase
 {
@@ -10,7 +10,7 @@ public class VolumeCommandTests : CliTestBase
     {
         await this.RunAndAssertAsync(
             "volume init sample-volume",
-            @$"Initialized tandoku volume at {this.ToFullPath("sample-volume")}");
+            @$"Initialized ireadervalar volume at {this.ToFullPath("sample-volume")}");
 
         this.fileSystem.GetFile(this.ToFullPath("sample-volume", "volume.yaml")).TextContents.TrimEnd().Should().Be(
 @"language: ja");
@@ -21,7 +21,7 @@ public class VolumeCommandTests : CliTestBase
     {
         await this.RunAndAssertAsync(
             "volume new sample-volume/1 --moniker sv-1 --tags tag1,tag2",
-            @$"Created new tandoku volume ""sample-volume/1"" at {this.ToFullPath("sv-1-sample-volume_1")}");
+            @$"Created new ireadervalar volume ""sample-volume/1"" at {this.ToFullPath("sv-1-sample-volume_1")}");
 
         this.fileSystem.GetFile(this.ToFullPath("sv-1-sample-volume_1", "volume.yaml")).TextContents.TrimEnd().Should().Be(
 @"title: sample-volume/1
@@ -33,12 +33,12 @@ tags: [tag1, tag2]");
     [Fact]
     public Task NewWithPath() => this.RunAndAssertAsync(
         "volume new sample-volume/1 --path container",
-        @$"Created new tandoku volume ""sample-volume/1"" at {this.ToFullPath("container", "sample-volume_1")}");
+        @$"Created new ireadervalar volume ""sample-volume/1"" at {this.ToFullPath("container", "sample-volume_1")}");
 
     [Fact]
     public Task NewWithFullPath() => this.RunAndAssertAsync(
         $"volume new sample-volume/1 --path {this.ToFullPath("container")}",
-        @$"Created new tandoku volume ""sample-volume/1"" at {this.ToFullPath("container", "sample-volume_1")}");
+        @$"Created new ireadervalar volume ""sample-volume/1"" at {this.ToFullPath("container", "sample-volume_1")}");
 
     [Fact]
     public async Task NewWithNonEmptyDirectory()
@@ -55,7 +55,7 @@ tags: [tag1, tag2]");
         this.fileSystem.AddEmptyFile(this.ToFullPath("sample-volume", "existing.txt"));
         await this.RunAndAssertAsync(
             "volume new sample-volume --force",
-            @$"Created new tandoku volume ""sample-volume"" at {this.ToFullPath("sample-volume")}");
+            @$"Created new ireadervalar volume ""sample-volume"" at {this.ToFullPath("sample-volume")}");
     }
 
 
@@ -93,7 +93,7 @@ tags: [tag1, tag2]");
 
         await this.RunAndAssertAsync(
             $"volume info",
-            expectedError: "The specified path does not contain a tandoku volume.");
+            expectedError: "The specified path does not contain a ireadervalar volume.");
     }
 
     [Theory]

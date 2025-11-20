@@ -1,4 +1,4 @@
-﻿using Tandoku.Reader;
+using Ireadervalar.Reader;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Index;
 using Lucene.Net.Search;

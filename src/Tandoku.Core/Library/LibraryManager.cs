@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Library;
+namespace Ireadervalar.Library;
 
 using System.IO.Abstractions;
-using Tandoku.Packaging;
+using Ireadervalar.Packaging;
 
 public sealed class LibraryManager
 {

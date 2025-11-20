@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.Collections.Immutable;
 using System.IO.Abstractions;

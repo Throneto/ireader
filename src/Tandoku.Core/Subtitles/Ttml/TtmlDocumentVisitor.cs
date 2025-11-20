@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Subtitles.Ttml;
+namespace Ireadervalar.Subtitles.Ttml;
 
 public abstract class TtmlDocumentVisitor
 {

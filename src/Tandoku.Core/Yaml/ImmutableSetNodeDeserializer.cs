@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Yaml;
+namespace Ireadervalar.Yaml;
 
 using System;
 using System.Collections.Immutable;

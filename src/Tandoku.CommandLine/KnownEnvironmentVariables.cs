@@ -1,6 +1,6 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 public static class KnownEnvironmentVariables
 {
-    public const string TandokuLibrary = "TANDOKU_LIBRARY";
+    public const string TandokuLibrary = "IREADERVALAR_LIBRARY";
 }

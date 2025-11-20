@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 // ---------------------------------------------------------------------------
 // <copyright file="Constants.cs" owner="svm-git">
@@ -26,7 +26,7 @@
 // </copyright>
 // ---------------------------------------------------------------------------
 
-namespace Tandoku.Subtitles.WebVtt;
+namespace Ireadervalar.Subtitles.WebVtt;
 
 /// <summary>
 /// Utility class for various string literals defined in WebVTT format.

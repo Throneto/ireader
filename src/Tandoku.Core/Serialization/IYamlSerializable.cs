@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Serialization;
+namespace Ireadervalar.Serialization;
 
 using System.IO.Abstractions;
-using Tandoku.Yaml;
+using Ireadervalar.Yaml;
 
 internal interface IYamlSerializable<TSelf>
     where TSelf : IYamlSerializable<TSelf>

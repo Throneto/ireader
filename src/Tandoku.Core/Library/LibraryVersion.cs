@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Library;
+namespace Ireadervalar.Library;
 
 using System.Diagnostics.CodeAnalysis;
-using Tandoku.Packaging;
+using Ireadervalar.Packaging;
 
 public sealed record LibraryVersion : IPackageVersion<LibraryVersion>
 {

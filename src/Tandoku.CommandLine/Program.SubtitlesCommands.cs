@@ -1,7 +1,7 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
-using Tandoku.Subtitles;
+using Ireadervalar.Subtitles;
 
 public sealed partial class Program
 {
@@ -17,7 +17,7 @@ public sealed partial class Program
     {
         var pathArgsBinder = new InputOutputPathArgsBinder();
 
-        var command = new Command("generate-content", "Generates tandoku content from subtitles")
+        var command = new Command("generate-content", "Generates ireadervalar content from subtitles")
         {
             pathArgsBinder,
         };
@@ -41,7 +41,7 @@ public sealed partial class Program
         var includeRefOption = new Option<string?>("--include-ref", "Include subtitles for blocks with the specified reference");
         var extendAudioOption = new Option<int>("--extend-audio", "Extend audio clips by specified duration (in msecs)");
 
-        var command = new Command("generate", "Generates subtitles from tandoku content")
+        var command = new Command("generate", "Generates subtitles from ireadervalar content")
         {
             pathArgsBinder,
             purposeOption,

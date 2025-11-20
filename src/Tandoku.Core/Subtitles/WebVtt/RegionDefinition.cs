@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 // ---------------------------------------------------------------------------
 // <copyright file="RegionDefinition.cs" owner="svm-git">
@@ -26,7 +26,7 @@
 // </copyright>
 // ---------------------------------------------------------------------------
 
-namespace Tandoku.Subtitles.WebVtt;
+namespace Ireadervalar.Subtitles.WebVtt;
 
 /// <summary>
 /// A WebVTT Region Definition block.

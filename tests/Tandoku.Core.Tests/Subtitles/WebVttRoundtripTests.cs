@@ -1,6 +1,6 @@
-﻿namespace Tandoku.Tests.Subtitles;
+namespace Tandoku.Tests.Subtitles;
 
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Subtitles.WebVtt;
 
 public class WebVttRoundtripTests
 {

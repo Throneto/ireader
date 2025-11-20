@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Yaml;
+namespace Ireadervalar.Yaml;
 
 using System.Collections.Immutable;
-using Tandoku.Content;
+using Ireadervalar.Content;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;

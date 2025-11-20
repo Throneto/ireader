@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Subtitles;
+namespace Ireadervalar.Subtitles;
 
 using System.Text;
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Subtitles.WebVtt;
 
 public static class WebVttToMarkdownConverter
 {
@@ -24,7 +24,7 @@ public static class WebVttToMarkdownConverter
             {
                 case SpanType.Ruby:
                     // Add space before ruby if necessary to avoid ambiguity.
-                    // This behavior needs to match the pattern used by tandoku markdown export to handle ruby.
+                    // This behavior needs to match the pattern used by ireadervalar markdown export to handle ruby.
                     if (this.StringBuilder.Length > 0 && this.StringBuilder[^1].IsRegexWordCharacter())
                         this.StringBuilder.Append(' ');
                     this.rubyContext++;

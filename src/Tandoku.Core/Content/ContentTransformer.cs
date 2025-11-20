@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.IO.Abstractions;
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 
 public sealed class ContentTransformer
 {

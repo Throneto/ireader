@@ -1,11 +1,11 @@
-﻿namespace Tandoku.Images;
+namespace Ireadervalar.Images;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Tandoku.Content;
+using Ireadervalar.Content;
 
 public sealed class Acv4ImageAnalysisProvider : IImageAnalysisProvider
 {

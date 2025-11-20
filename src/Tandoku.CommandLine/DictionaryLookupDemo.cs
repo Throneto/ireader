@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -6,13 +6,13 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Tandoku.CommandLine
+namespace Ireadervalar.CommandLine
 {
     internal static class DictionaryLookupDemo
     {
         internal static readonly string JMDictPath = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "OneDrive/tandoku/resources/dictionaries/jmdict/JMdict_e.xml");
+            "OneDrive/ireadervalar/resources/dictionaries/jmdict/JMdict_e.xml");
 
         private static DictionaryStore _store = LoadStore();
 

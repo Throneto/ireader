@@ -1,7 +1,7 @@
-﻿namespace Tandoku.Packaging;
+namespace Ireadervalar.Packaging;
 
 using System.IO.Abstractions;
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 
 // TODO - rename this to EntityFileStore (and Tandoku.Storage folder/namespace)
 // (and maybe later introduce IEntityStore abstraction over underlying store - requires abstraction for store location, relative paths)
@@ -12,11 +12,13 @@ internal sealed class Packager<TVersion>
 
     private readonly string packageTypeName;
     private readonly string metadataDirectoryName;
+    private readonly string legacyMetadataDirectoryName;
 
     internal Packager(string packageTypeName)
     {
         this.packageTypeName = packageTypeName;
-        this.metadataDirectoryName = ".tandoku-" + packageTypeName;
+        this.metadataDirectoryName = ".ireadervalar-" + packageTypeName;
+        this.legacyMetadataDirectoryName = ".tandoku-" + packageTypeName;
     }
 
     internal async Task InitializePackageAsync(IDirectoryInfo directory, TVersion version, bool force)
@@ -33,9 +35,10 @@ internal sealed class Packager<TVersion>
         }
 
         var metadataDirectory = directory.GetSubdirectory(this.metadataDirectoryName);
-        if (metadataDirectory.Exists)
+        var legacyMetadataDirectory = directory.GetSubdirectory(this.legacyMetadataDirectoryName);
+        if (metadataDirectory.Exists || legacyMetadataDirectory.Exists)
         {
-            throw new InvalidOperationException($"A tandoku {this.packageTypeName} already exists in the specified directory.");
+            throw new InvalidOperationException($"A ireadervalar {this.packageTypeName} already exists in the specified directory.");
         }
         else
         {
@@ -50,10 +53,15 @@ internal sealed class Packager<TVersion>
     {
         if (baseDirectory.Exists)
         {
-            return baseDirectory
+            var newDirs = baseDirectory
                 .EnumerateDirectories(this.metadataDirectoryName, SearchOption.AllDirectories)
                 .Select(d => d.Parent)
-                .OfType<IDirectoryInfo>(); // TODO: consider adding WhereNonNull() to satisfy null checking without cast
+                .OfType<IDirectoryInfo>();
+            var legacyDirs = baseDirectory
+                .EnumerateDirectories(this.legacyMetadataDirectoryName, SearchOption.AllDirectories)
+                .Select(d => d.Parent)
+                .OfType<IDirectoryInfo>();
+            return newDirs.Concat(legacyDirs);
         }
         return Enumerable.Empty<IDirectoryInfo>();
     }
@@ -61,11 +69,22 @@ internal sealed class Packager<TVersion>
     internal async Task<TVersion> GetPackageMetadataAsync(IDirectoryInfo directory)
     {
         var metadataDirectory = directory.GetSubdirectory(this.metadataDirectoryName);
-
         var versionFile = metadataDirectory.GetFile(VersionFileName);
-        var version = versionFile.Exists ?
-            await IPackageVersion<TVersion>.ReadFromAsync(versionFile) :
-            throw new ArgumentException($"The specified directory is not a valid tandoku {this.packageTypeName}.");
+        TVersion? version = null;
+        if (versionFile.Exists)
+        {
+            version = await IPackageVersion<TVersion>.ReadFromAsync(versionFile);
+        }
+        else
+        {
+            var legacyMetadataDirectory = directory.GetSubdirectory(this.legacyMetadataDirectoryName);
+            var legacyVersionFile = legacyMetadataDirectory.GetFile(VersionFileName);
+            version = legacyVersionFile.Exists ?
+                await IPackageVersion<TVersion>.ReadFromAsync(legacyVersionFile) :
+                null;
+        }
+        if (version is null)
+            throw new ArgumentException($"The specified directory is not a valid ireadervalar {this.packageTypeName}.");
 
         return version;
     }
@@ -75,7 +94,8 @@ internal sealed class Packager<TVersion>
         if (directory.Exists)
         {
             var metadataDirectory = directory.GetSubdirectory(this.metadataDirectoryName);
-            if (metadataDirectory.Exists)
+            var legacyMetadataDirectory = directory.GetSubdirectory(this.legacyMetadataDirectoryName);
+            if (metadataDirectory.Exists || legacyMetadataDirectory.Exists)
                 return directory.FullName;
 
             return checkAncestors && directory.Parent is not null ?
@@ -101,7 +121,7 @@ internal sealed class Packager<TVersion>
         var file = packageDirectory.GetFile(relativePath);
         var contents = file.Exists ?
             await TPart.ReadYamlAsync(file) :
-            throw new ArgumentException($"The specified directory does not contain a tandoku {this.packageTypeName} {partName}.");
+            throw new ArgumentException($"The specified directory does not contain a ireadervalar {this.packageTypeName} {partName}.");
         return (file, contents);
     }
 

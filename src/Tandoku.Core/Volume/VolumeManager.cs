@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Volume;
+namespace Ireadervalar.Volume;
 
 using System.IO.Abstractions;
-using Tandoku.Library;
-using Tandoku.Packaging;
+using Ireadervalar.Library;
+using Ireadervalar.Packaging;
 
 public sealed class VolumeManager
 {
@@ -119,7 +119,7 @@ public sealed class VolumeManager
 
             ExpandedScope.ParentLibrary =>
                 this.CreateLibraryManager().ResolveLibraryDirectoryPath(path, checkAncestors: true) ??
-                    throw new ArgumentException("The specified path does not contain a tandoku library."),
+                    throw new ArgumentException("The specified path does not contain a ireadervalar library."),
 
             _ => path,
         };

@@ -1,7 +1,7 @@
-﻿namespace Tandoku.CommandLine.Tests;
+namespace Tandoku.CommandLine.Tests;
 
 using System.IO.Abstractions.TestingHelpers;
-using Tandoku.Volume;
+using Ireadervalar.Volume;
 
 public class VolumeSourceCommandTests : CliTestBase
 {

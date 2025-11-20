@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Subtitles;
+namespace Ireadervalar.Subtitles;
 
 using System.IO.Abstractions;
-using Tandoku.Subtitles.Ttml;
-using Tandoku.Subtitles.WebVtt;
+using Ireadervalar.Subtitles.Ttml;
+using Ireadervalar.Subtitles.WebVtt;
 
 /// <summary>
 /// Converter for TTML subtitles to WebVTT format. Preserves ruby annotations.

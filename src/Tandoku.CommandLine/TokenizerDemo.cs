@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +7,7 @@ using Lucene.Net.Analysis.Ja;
 using Lucene.Net.Analysis.Ja.TokenAttributes;
 using Lucene.Net.Analysis.TokenAttributes;
 
-namespace Tandoku.CommandLine
+namespace Ireadervalar.CommandLine
 {
     internal static class TokenizerDemo
     {
@@ -15,7 +15,7 @@ namespace Tandoku.CommandLine
         {
             if (!Console.IsInputRedirected)
             {
-                Console.WriteLine("tandoku: expecting input");
+                Console.WriteLine("ireadervalar: expecting input");
                 return;
             }
 

@@ -1,11 +1,11 @@
-﻿namespace Tandoku.Subtitles;
+namespace Ireadervalar.Subtitles;
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using Nikse.SubtitleEdit.Core.Common;
 using Nikse.SubtitleEdit.Core.SubtitleFormats;
-using Tandoku.Content;
-using Tandoku.Serialization;
+using Ireadervalar.Content;
+using Ireadervalar.Serialization;
 
 public enum SubtitlePurpose
 {

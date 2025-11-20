@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Subtitles;
+namespace Ireadervalar.Subtitles;
 
 using System.IO.Abstractions;
 

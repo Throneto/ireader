@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.IO.Abstractions;
-using Tandoku.Content.Alignment;
-using Tandoku.Serialization;
+using Ireadervalar.Content.Alignment;
+using Ireadervalar.Serialization;
 
 public sealed class ContentMerger
 {

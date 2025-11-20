@@ -1,10 +1,10 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Tandoku.Serialization;
+using Ireadervalar.Serialization;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 

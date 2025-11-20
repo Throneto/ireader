@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Content.Alignment;
+namespace Ireadervalar.Content.Alignment;
 
 public interface IContentAligner
 {

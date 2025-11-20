@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Serialization;
+namespace Ireadervalar.Serialization;
 
 using System.IO.Abstractions;
-using Tandoku.Content;
-using Tandoku.Yaml;
+using Ireadervalar.Content;
+using Ireadervalar.Yaml;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 

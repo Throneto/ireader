@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Analysis.Core;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -12,7 +12,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Tandoku.CommandLine
+namespace Ireadervalar.CommandLine
 {
     internal static class DictionaryCompiler
     {

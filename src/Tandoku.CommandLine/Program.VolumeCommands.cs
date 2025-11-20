@@ -1,14 +1,14 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.IO.Abstractions;
-using Tandoku.Volume;
+using Ireadervalar.Volume;
 
 public sealed partial class Program
 {
     private Command CreateVolumeCommand() =>
-        new("volume", "Commands for working with tandoku volumes")
+        new("volume", "Commands for working with ireadervalar volumes")
         {
             this.CreateVolumeInitCommand(),
             this.CreateVolumeNewCommand(),
@@ -20,11 +20,11 @@ public sealed partial class Program
 
     private Command CreateVolumeInitCommand()
     {
-        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory for new tandoku volume")
+        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory for new ireadervalar volume")
             .LegalFilePathsOnly();
         var forceOption = new Option<bool>(["--force", "-f"], "Allow initialization in non-empty directory");
 
-        var command = new Command("init", "Initializes a new tandoku volume in the current or specified directory")
+        var command = new Command("init", "Initializes a new ireadervalar volume in the current or specified directory")
         {
             pathArgument,
             forceOption,
@@ -43,7 +43,7 @@ public sealed partial class Program
             }
             else
             {
-                this.console.WriteLine(@$"Initialized tandoku volume at {info.Path}");
+                this.console.WriteLine(@$"Initialized ireadervalar volume at {info.Path}");
             }
         }, pathArgument, forceOption, this.jsonOutputOption);
 
@@ -52,14 +52,14 @@ public sealed partial class Program
 
     private Command CreateVolumeNewCommand()
     {
-        var titleArgument = new Argument<string>("title", "Title of new tandoku volume");
-        var pathOption = new Option<DirectoryInfo?>(["--path", "-p"], "Containing directory for new tandoku volume")
+        var titleArgument = new Argument<string>("title", "Title of new ireadervalar volume");
+        var pathOption = new Option<DirectoryInfo?>(["--path", "-p"], "Containing directory for new ireadervalar volume")
             .LegalFilePathsOnly();
         var monikerOption = new Option<string?>(["--moniker", "-m"], "Optional moniker to identify volume, prepended to volume directory");
         var tagsOption = new Option<string>(["--tags", "-t"], "Optional comma-separated tags for volume");
         var forceOption = new Option<bool>(["--force", "-f"], "Allow new volume in non-empty directory");
 
-        var command = new Command("new", "Creates a new tandoku volume under the current or specified directory")
+        var command = new Command("new", "Creates a new ireadervalar volume under the current or specified directory")
         {
             titleArgument,
             pathOption,
@@ -74,7 +74,7 @@ public sealed partial class Program
             var path = directory?.FullName ?? this.fileSystem.Directory.GetCurrentDirectory();
             var tagsArray = tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var info = await volumeManager.CreateNewAsync(path, title, moniker, tagsArray, force);
-            this.console.WriteLine(@$"Created new tandoku volume ""{title}"" at {info.Path}");
+            this.console.WriteLine(@$"Created new ireadervalar volume ""{title}"" at {info.Path}");
         }, titleArgument, pathOption, monikerOption, tagsOption, forceOption);
 
         return command;
@@ -180,7 +180,7 @@ public sealed partial class Program
 
     private Command CreateVolumeListCommand()
     {
-        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory to search for tandoku volumes")
+        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory to search for ireadervalar volumes")
         {
             Arity = ArgumentArity.ZeroOrOne,
         }.LegalFilePathsOnly();
@@ -236,7 +236,7 @@ public sealed partial class Program
 
             return volumeDirectoryPath is not null ?
                 fileSystem.GetDirectory(volumeDirectoryPath) :
-                throw new ArgumentException("The specified path does not contain a tandoku volume.");
+                throw new ArgumentException("The specified path does not contain an ireadervalar volume.");
         }
     }
 }

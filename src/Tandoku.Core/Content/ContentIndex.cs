@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Content;
+namespace Ireadervalar.Content;
 
 internal static class ContentIndex
 {

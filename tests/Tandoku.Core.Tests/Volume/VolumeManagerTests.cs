@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Tests.Volume;
+namespace Tandoku.Tests.Volume;
 
 using System.IO.Abstractions.TestingHelpers;
-using Tandoku.Library;
-using Tandoku.Volume;
+using Ireadervalar.Library;
+using Ireadervalar.Volume;
 
 public class VolumeManagerTests
 {
@@ -30,7 +30,7 @@ public class VolumeManagerTests
         var definitionPath = this.fileSystem.Path.Join(info.Path, "volume.yaml");
         info.DefinitionPath.Should().Be(definitionPath);
         this.fileSystem.AllFiles.Count().Should().Be(2);
-        this.fileSystem.GetFile(this.fileSystem.Path.Join(info.Path, ".tandoku-volume/version")).TextContents.Should().Be(
+        this.fileSystem.GetFile(this.fileSystem.Path.Join(info.Path, ".ireadervalar-volume/version")).TextContents.Should().Be(
             VolumeVersion.Latest.Version.ToString());
         this.fileSystem.GetFile(definitionPath).TextContents.TrimEnd().Should().Be(
 @"language: ja");
@@ -64,7 +64,7 @@ public class VolumeManagerTests
         var definitionPath = this.fileSystem.Path.Join(info.Path, "volume.yaml");
         info.DefinitionPath.Should().Be(definitionPath);
         this.fileSystem.AllFiles.Count().Should().Be(2);
-        this.fileSystem.GetFile(this.fileSystem.Path.Join(info.Path, ".tandoku-volume/version")).TextContents.Should().Be(
+        this.fileSystem.GetFile(this.fileSystem.Path.Join(info.Path, ".ireadervalar-volume/version")).TextContents.Should().Be(
             VolumeVersion.Latest.Version.ToString());
         this.fileSystem.GetFile(definitionPath).TextContents.TrimEnd().Should().Be(
 @"title: sample volume/1
@@ -226,7 +226,7 @@ tags: [tag-1, tag-2]");
     {
         var path = this.fileSystem.Path.Join(
             this.fileSystem.Directory.GetCurrentDirectory(),
-            "tandoku-library");
+            "ireadervalar-library");
 
         var libraryManager = new LibraryManager(this.fileSystem);
         return libraryManager.InitializeAsync(path);

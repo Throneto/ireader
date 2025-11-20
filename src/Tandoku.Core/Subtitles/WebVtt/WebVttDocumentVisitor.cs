@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Subtitles.WebVtt;
+namespace Ireadervalar.Subtitles.WebVtt;
 
 public abstract class WebVttDocumentVisitor
 {

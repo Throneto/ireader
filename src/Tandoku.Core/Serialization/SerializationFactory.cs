@@ -1,8 +1,8 @@
-﻿namespace Tandoku.Serialization;
+namespace Ireadervalar.Serialization;
 
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using Tandoku.Yaml;
+using Ireadervalar.Yaml;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 

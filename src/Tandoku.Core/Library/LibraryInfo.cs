@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Library;
+namespace Ireadervalar.Library;
 
 public sealed record LibraryInfo(
     string Path,

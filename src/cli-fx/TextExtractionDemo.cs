@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using TikaOnDotNet.TextExtraction;
 
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
 
-namespace Tandoku.CommandLine.Legacy
+namespace Ireadervalar.CommandLine.Legacy
 {
     class TextExtractionDemo
     {

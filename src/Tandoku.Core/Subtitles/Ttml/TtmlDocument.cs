@@ -1,4 +1,4 @@
-﻿namespace Tandoku.Subtitles.Ttml;
+namespace Ireadervalar.Subtitles.Ttml;
 
 using System.Text.RegularExpressions;
 using System.Xml;

@@ -1,15 +1,15 @@
-﻿namespace Tandoku.CommandLine;
+namespace Ireadervalar.CommandLine;
 
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.IO.Abstractions;
-using Tandoku.CommandLine.Abstractions;
-using Tandoku.Library;
+using Ireadervalar.CommandLine.Abstractions;
+using Ireadervalar.Library;
 
 public sealed partial class Program
 {
     private Command CreateLibraryCommand() =>
-        new("library", "Commands for working with tandoku libraries")
+        new("library", "Commands for working with ireadervalar libraries")
         {
             this.CreateLibraryInitCommand(),
             this.CreateLibraryInfoCommand(),
@@ -17,13 +17,13 @@ public sealed partial class Program
 
     private Command CreateLibraryInitCommand()
     {
-        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory for new tandoku library")
+        var pathArgument = new Argument<DirectoryInfo?>("path", "Directory for new ireadervalar library")
         {
             Arity = ArgumentArity.ZeroOrOne,
         }.LegalFilePathsOnly();
         var forceOption = new Option<bool>(new[] { "--force", "-f" }, "Allow new library in non-empty directory");
 
-        var command = new Command("init", "Initializes a new tandoku library in the current or specified directory")
+        var command = new Command("init", "Initializes a new ireadervalar library in the current or specified directory")
         {
             pathArgument,
             forceOption,
@@ -34,7 +34,7 @@ public sealed partial class Program
             var libraryManager = this.CreateLibraryManager();
             var path = directory?.FullName ?? this.fileSystem.Directory.GetCurrentDirectory();
             var info = await libraryManager.InitializeAsync(path, force);
-            this.console.WriteLine($"Initialized new tandoku library at {info.Path}");
+            this.console.WriteLine($"Initialized new ireadervalar library at {info.Path}");
         }, pathArgument, forceOption);
 
         return command;
@@ -95,15 +95,20 @@ public sealed partial class Program
                 libraryManager.ResolveLibraryDirectoryPath(directoryInfo.FullName) :
                 libraryManager.ResolveLibraryDirectoryPath(this.fileSystem.Directory.GetCurrentDirectory(), checkAncestors: true);
 
-            if (libraryDirectoryPath is null &&
-                this.environment.GetEnvironmentVariable(KnownEnvironmentVariables.TandokuLibrary) is string envPath)
+            if (libraryDirectoryPath is null)
             {
-                libraryDirectoryPath = libraryManager.ResolveLibraryDirectoryPath(envPath);
+                var envPath =
+                    this.environment.GetEnvironmentVariable(KnownEnvironmentVariables.TandokuLibrary) ??
+                    this.environment.GetEnvironmentVariable("TANDOKU_LIBRARY");
+                if (envPath is not null)
+                {
+                    libraryDirectoryPath = libraryManager.ResolveLibraryDirectoryPath(envPath);
+                }
             }
 
             return libraryDirectoryPath is not null ?
                 this.fileSystem.GetDirectory(libraryDirectoryPath) :
-                throw new ArgumentException("The specified path does not contain a tandoku library.");
+                throw new ArgumentException("The specified path does not contain a ireadervalar library.");
         }
     }
 }

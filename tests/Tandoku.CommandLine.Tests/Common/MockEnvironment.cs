@@ -1,6 +1,6 @@
-﻿namespace Tandoku.CommandLine.Tests;
+namespace Tandoku.CommandLine.Tests;
 
-using Tandoku.CommandLine.Abstractions;
+using Ireadervalar.CommandLine.Abstractions;
 
 public class MockEnvironment : IEnvironment
 {
