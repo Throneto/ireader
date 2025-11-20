@@ -1,6 +1,8 @@
 {
-  "buildCommand": "",
-  "outputDirectory": "web",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/sw.js", "destination": "/web/sw.js" },
+    { "source": "/", "destination": "/web/index.html" },
+    { "source": "/(.*)", "destination": "/web/$1" }
+  ]
 }

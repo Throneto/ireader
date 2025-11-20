@@ -95,6 +95,9 @@
           <input id="file-input" type="file" accept=".epub" />
           <input id="url-input" type="url" placeholder="输入EPUB地址" />
           <button id="open-url" class="primary">打开</button>
+          <input id="admin-password" type="password" placeholder="管理员密码" />
+          <button id="login-btn">登录</button>
+          <button id="logout-btn" style="display:none">退出登录</button>
           <button id="prev">上一页</button>
           <button id="next">下一页</button>
           <label for="font-size">字体</label>
@@ -122,6 +125,8 @@
 
       <div class="layout">
         <aside class="sidebar">
+          <h3>服务器书库</h3>
+          <div class="toc" id="server-library"></div>
           <h3>书库</h3>
           <div class="toc" id="library"></div>
           <h3>目录</h3>
@@ -148,6 +153,9 @@
       const fileInput = document.getElementById('file-input');
       const urlInput = document.getElementById('url-input');
       const openUrlBtn = document.getElementById('open-url');
+      const adminPwInput = document.getElementById('admin-password');
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
       const prevBtn = document.getElementById('prev');
       const nextBtn = document.getElementById('next');
       const prevBtn2 = document.getElementById('prev2');
@@ -163,11 +171,13 @@
       const widthModeSel = document.getElementById('width-mode');
       const widthRange = document.getElementById('width');
       const libraryEl = document.getElementById('library');
+      const serverLibraryEl = document.getElementById('server-library');
 
       let book = null;
       let rendition = null;
       let blobUrl = null;
       let locationsReady = false;
+      let serverLoggedIn = false;
       let currentBookId = null;
       let db = null;
       let dbReady = false;
@@ -293,12 +303,19 @@
         const file = e.target.files && e.target.files[0];
         if (!file) return;
         await importFileAndOpen(file);
+        await uploadToServer(file);
       });
 
       openUrlBtn.addEventListener('click', async () => {
         const url = urlInput.value.trim();
         if (!url) return;
         await importUrlAndOpen(url);
+        if (serverLoggedIn) {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const file = new File([blob], (url.split('/').pop() || 'book.epub'), { type: 'application/epub+zip' });
+          await uploadToServer(file);
+        }
       });
 
       prevBtn.addEventListener('click', () => rendition && rendition.prev());
@@ -316,15 +333,101 @@
         if (e.key === 'ArrowRight') { rendition.next(); }
         if (e.key === 'ArrowLeft') { rendition.prev(); }
       });
+      async function login() {
+        const pw = adminPwInput.value.trim();
+        if (!pw) return;
+        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+        if (res.ok) { const j = await res.json(); csrfToken = j.csrf; serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none'; logoutBtn.style.display = ''; await refreshServerLibrary(); } else { alert('登录失败'); }
+      }
+      loginBtn.addEventListener('click', login);
+
+      async function refreshServerLibrary() {
+        try {
+          const res = await fetch('/api/books');
+          if (!res.ok) { serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = ''; serverLibraryEl.innerHTML = ''; return; }
+          serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none';
+          const data = await res.json();
+          serverLibraryEl.innerHTML = '';
+          data.items.forEach(item => {
+            const row = document.createElement('div');
+            const a = document.createElement('a');
+            const name = item.pathname.split('/').pop();
+            const label = (item.title || name) + (item.author ? (' · ' + item.author) : '');
+            a.textContent = label;
+            a.href = '#';
+            a.onclick = async (ev) => { ev.preventDefault(); await openServerBook(item); };
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '删除';
+            delBtn.onclick = async () => { await deleteServerBook(item.pathname); await refreshServerLibrary(); };
+            row.appendChild(a);
+            row.appendChild(document.createTextNode(' '));
+            row.appendChild(delBtn);
+            serverLibraryEl.appendChild(row);
+          });
+        } catch (e) { serverLoggedIn = false; }
+      }
+
+      async function deleteServerBook(id) {
+        const headers = csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
+        await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers });
+      }
+
+      async function openServerBook(item) {
+        const res = await fetch(item.url);
+        const blob = await res.blob();
+        const buffer = await blob.arrayBuffer();
+        await ensureDB();
+        const id = await saveBookBuffer(buffer, { title: item.pathname.split('/').pop(), size: blob.size });
+        const r = await db.get('reading', id);
+        currentBookId = id;
+        await refreshLibrary();
+        await loadBook(buffer, r && r.lastCfi ? r.lastCfi : null);
+        try {
+          const meta = await extractMeta(buffer, { title: item.pathname.split('/').pop() });
+          await updateServerMeta(item.pathname, meta.title, meta.author);
+        } catch (e) {}
+      }
+
+      async function uploadToServer(file) {
+        if (!serverLoggedIn) return;
+        const fd = new FormData();
+        fd.append('file', file, file.name || 'book.epub');
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (res.ok) {
+          const j = await res.json();
+          try {
+            const buffer = await file.arrayBuffer();
+            const meta = await extractMeta(buffer, { title: file.name });
+            await updateServerMeta(j.pathname, meta.title, meta.author);
+          } catch (e) {}
+          await refreshServerLibrary();
+        }
+      }
+
+      async function updateServerMeta(pathname, title, author) {
+        if (!serverLoggedIn || !csrfToken) return;
+        await fetch('/api/metadata', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify({ pathname, title, author }) });
+      }
+
+      async function extractMeta(buffer, defaults) {
+        const tmp = ePub();
+        let title = defaults && defaults.title ? defaults.title : '';
+        let author = defaults && defaults.author ? defaults.author : '';
+        try { await tmp.open(buffer); } catch(e) {}
+        try { const md = await tmp.loaded.metadata; title = md.title || title; author = md.creator || author; } catch(e) {}
+        try { tmp.destroy(); } catch(e) {}
+        return { title, author };
+      }
       document.addEventListener('DOMContentLoaded', async () => {
         await ensureDB();
         await refreshLibrary();
         await loadSettings();
         registerSW();
+        await refreshServerLibrary();
       });
 
       function registerSW() {
-        if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('./sw.js'); } catch(e) {} }
+        if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('/sw.js'); } catch(e) {} }
       }
 
       async function initDB() {
@@ -428,3 +531,5 @@
     </script>
   </body>
 </html>
+      async function logout() { await fetch('/api/logout', { method: 'POST' }); serverLoggedIn = false; csrfToken = null; adminPwInput.style.display = ''; loginBtn.style.display = ''; logoutBtn.style.display = 'none'; serverLibraryEl.innerHTML = ''; }
+      logoutBtn.addEventListener('click', logout);
