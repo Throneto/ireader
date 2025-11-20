@@ -18,6 +18,7 @@ export async function createSessionCookieHeader(user) {
 
 export async function verifySession(req) {
   const secret = process.env.SESSION_SECRET
+  if (!secret) return false
   const c = req.headers.get('cookie') || ''
   const part = c.split(';').map(s => s.trim()).find(x => x.startsWith('session='))
   if (!part) return false
