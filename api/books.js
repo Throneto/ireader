@@ -11,8 +11,9 @@ export default async function handler(req, res) {
     const metaMap = {}
     const metaUrlMap = {}
     for (const m of metas) { const base = m.pathname.replace(/\.meta\.json$/, ''); metaMap[base] = m.pathname; metaUrlMap[base] = m.url }
-    const items = epubs.map(b => ({ url: b.url, pathname: b.pathname, size: b.size, uploadedAt: b.uploadedAt, metaPath: metaMap[b.pathname] || null, metaUrl: metaUrlMap[b.pathname] || null }))
+  const items = epubs.map(b => ({ url: b.url, pathname: b.pathname, size: b.size, uploadedAt: b.uploadedAt, metaPath: metaMap[b.pathname] || null, metaUrl: metaUrlMap[b.pathname] || null }))
     res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Cache-Control', 'no-store')
     res.end(JSON.stringify({ items }))
   } catch (e) {
     res.statusCode = 500

@@ -369,7 +369,7 @@
 
       async function refreshServerLibrary() {
         try {
-          const res = await fetch('/api/books', { credentials: 'same-origin' });
+          const res = await fetch('/api/books', { credentials: 'same-origin', cache: 'no-store' });
           if (!res.ok) {
             serverLoggedIn = false;
             adminPwInput.style.display = '';
@@ -389,9 +389,9 @@
             a.textContent = label;
             a.href = '#';
             a.onclick = async (ev) => { ev.preventDefault(); await openServerBook(item); };
-          const delBtn = document.createElement('button');
-          delBtn.textContent = '删除';
-          delBtn.onclick = async () => { await deleteServerBook(item.pathname, delBtn); };
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '删除';
+            delBtn.onclick = async () => { await deleteServerBook(item.pathname, delBtn); };
             row.appendChild(a);
             row.appendChild(document.createTextNode(' '));
             row.appendChild(delBtn);
@@ -431,8 +431,11 @@
         } catch(e) {
           alert('删除失败：' + (e && e.message ? e.message : '网络错误'));
         } finally {
-          try { await refreshServerLibrary(); }
-          catch (_) { if (btn) { btn.disabled = false; btn.textContent = '删除'; } }
+          try {
+            await refreshServerLibrary();
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '删除'; }
+          }
         }
       }
 
