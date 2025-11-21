@@ -451,7 +451,7 @@
 
       async function uploadToServer(file) {
         if (!serverLoggedIn) return;
-        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/epub+zip', 'X-Filename': file.name || 'book.epub' }, body: await file.arrayBuffer() });
+        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/epub+zip', 'X-Filename': file.name || 'book.epub' }, body: await file.arrayBuffer(), credentials: 'same-origin' });
         if (res.ok) {
           const j = await res.json();
           try {
@@ -465,7 +465,15 @@
 
       async function updateServerMeta(pathname, title, author) {
         if (!serverLoggedIn || !csrfToken) return;
-        await fetch('/api/metadata', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify({ pathname, title, author }) });
+        await fetch('/api/metadata', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify({ pathname, title, author }), credentials: 'same-origin' });
+      }
+
+      function initCsrfFromCookie() {
+        try {
+          const c = document.cookie || '';
+          const m = c.split(';').map(s=>s.trim()).find(x=>x.startsWith('csrf='));
+          csrfToken = m ? m.slice('csrf='.length) : csrfToken;
+        } catch(e) {}
       }
 
       async function extractMeta(buffer, defaults) {
@@ -502,6 +510,7 @@
         return { title, author };
       }
       document.addEventListener('DOMContentLoaded', async () => {
+        initCsrfFromCookie();
         await ensureDB();
         await refreshLibrary();
         await loadSettings();
