@@ -269,7 +269,11 @@
           return;
         }
         rendition = book.renderTo('reader', { width: '100%', height: '100%', spread: spreadSel.value, allowScriptedContent: true });
-        await rendition.display(startCfi || undefined);
+        try {
+          await rendition.display(startCfi || undefined);
+        } catch (_) {
+          try { await rendition.display(); } catch (_) {}
+        }
         initThemes();
         applyReaderWidth();
         footerEl.hidden = false;
@@ -471,16 +475,34 @@
 
       async function uploadToServer(file) {
         if (!serverLoggedIn) return;
-        const nameParam = encodeURIComponent(file.name || 'book.epub');
-        const res = await fetch('/api/upload?filename=' + nameParam, { method: 'POST', headers: { 'Content-Type': 'application/epub+zip' }, body: await file.arrayBuffer(), credentials: 'same-origin' });
-        if (res.ok) {
-          const j = await res.json();
+        const origName = (file.name || 'book.epub') + '';
+        let name = origName.toLowerCase();
+        if (!name.endsWith('.epub')) { name = name.replace(/\.[^./]+$/, '') + '.epub'; }
+        name = name.replace(/[\\\/]+/g, '_').replace(/[^a-z0-9._-]+/g, '_');
+        const pathname = 'books/' + name;
+        try {
+          const mod = await import('https://cdn.jsdelivr.net/npm/@vercel/blob@latest/client/+esm');
+          const result = await mod.upload(pathname, file, { access: 'public', handleUploadUrl: '/api/client-upload' });
           try {
             const buffer = await file.arrayBuffer();
-            const meta = await extractMeta(buffer, { title: file.name });
-            await updateServerMeta(j.pathname, meta.title, meta.author);
+            const meta = await extractMeta(buffer, { title: origName });
+            await updateServerMeta(result.pathname, meta.title, meta.author);
           } catch (e) {}
           await refreshServerLibrary();
+        } catch (e) {
+          try {
+            const nameParam = encodeURIComponent(origName);
+            const res = await fetch('/api/upload?filename=' + nameParam, { method: 'POST', body: file, credentials: 'same-origin' });
+            if (res.ok) {
+              const j = await res.json();
+              try {
+                const buffer = await file.arrayBuffer();
+                const meta = await extractMeta(buffer, { title: origName });
+                await updateServerMeta(j.pathname, meta.title, meta.author);
+              } catch (e2) {}
+              await refreshServerLibrary();
+            }
+          } catch (_) {}
         }
       }
 
