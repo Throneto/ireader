@@ -369,7 +369,7 @@
 
       async function refreshServerLibrary() {
         try {
-          const res = await fetch('/api/books', { credentials: 'same-origin', cache: 'no-store' });
+          const res = await fetch('/api/books?ts=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
           if (!res.ok) {
             serverLoggedIn = false;
             adminPwInput.style.display = '';

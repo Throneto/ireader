@@ -14,14 +14,24 @@ export default async function handler(req, res) {
   const id = url.searchParams.get('id')
   if (!id) { res.statusCode = 400; return res.end('Bad Request') }
   try {
-    try { await del(id) }
+    const r1 = await list({ prefix: 'books/' })
+    const target1 = r1.blobs.find(b => b.pathname === id || b.url === id)
+    if (!target1) { res.statusCode = 404; return res.end('Not Found') }
+
+    try { await del(target1.url) }
     catch (e1) {
-      const r = await list({ prefix: 'books/' })
-      const target = r.blobs.find(b => b.pathname === id)
-      if (!target) { res.statusCode = 404; return res.end('Not Found') }
-      try { await del(target.url) }
-      catch (e2) { res.statusCode = 500; return res.end('Delete Failed') }
+      try { await del(target1.pathname) } catch (e2) { res.statusCode = 500; return res.end('Delete Failed') }
     }
+
+    // verify deletion
+    let remaining = null
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const rl = await list({ prefix: 'books/' })
+      remaining = rl.blobs.find(b => b.pathname === id)
+      if (!remaining) break
+      await new Promise(reslv => setTimeout(reslv, 250))
+    }
+    if (remaining) { res.statusCode = 500; return res.end('Delete Not Confirmed') }
     res.statusCode = 204
     res.end()
   } catch (e) {
