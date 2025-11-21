@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ireadervalar · 在线EPUB阅读器</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Ctext x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='28' fill='white' font-family='Arial'%3E📘%3C/text%3E%3C/svg%3E" />
     <style>
       :root {
         --bg: #ffffff;
@@ -368,7 +369,7 @@
 
       async function refreshServerLibrary() {
         try {
-          const res = await fetch('/api/books');
+          const res = await fetch('/api/books', { credentials: 'same-origin' });
           if (!res.ok) { serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = ''; serverLibraryEl.innerHTML = ''; return; }
           serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none';
           const data = await res.json();
@@ -405,8 +406,19 @@
       }
 
       async function deleteServerBook(id) {
-        const headers = csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
-        await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers });
+        if (!serverLoggedIn || !csrfToken) { alert('请先登录'); return; }
+        const headers = { 'X-CSRF-Token': csrfToken };
+        const res = await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers, credentials: 'same-origin' });
+        if (!res.ok) {
+          if (res.status === 401) {
+            serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = '';
+            alert('未授权，请重新登录');
+          } else if (res.status === 403) {
+            alert('删除失败：令牌无效');
+          } else {
+            alert('删除失败：' + res.status);
+          }
+        }
       }
 
       async function openServerBook(item) {
