@@ -16,7 +16,11 @@ export default async function handler(req, res) {
   if (size === 0) { res.statusCode = 400; return res.end('Bad Request') }
   if (size > maxMb*1024*1024) { res.statusCode = 413; return res.end('Payload Too Large') }
   const buf = Buffer.concat(chunks)
-  let name = ((req.headers['x-filename'] || 'book.epub') + '').toLowerCase()
+  const url = new URL(req.url, 'http://localhost')
+  let rawName = url.searchParams.get('filename')
+  if (rawName) { try { rawName = decodeURIComponent(rawName) } catch {} }
+  let name = ((rawName || req.headers['x-filename'] || 'book.epub') + '')
+  name = name.toLowerCase()
   if (!name.endsWith('.epub')) { res.statusCode = 415; return res.end('Unsupported Media Type') }
   name = name.replace(/[\\\/]+/g, '_').replace(/[^a-z0-9._-]+/g, '_')
   const path = `books/${name}`

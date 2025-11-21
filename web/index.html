@@ -284,7 +284,15 @@
             a.onclick = async (ev) => {
               ev.preventDefault();
               try { await rendition.display(item.href); }
-              catch (e) { const base = (item.href || '').split('#')[0]; try { await rendition.display(base); } catch (_) {} }
+              catch (e) {
+                const href = item.href || '';
+                if (/^epubcfi\(/i.test(href)) {
+                  try { await rendition.display(); } catch (_) {}
+                } else {
+                  const base = href.split('#')[0];
+                  try { await rendition.display(base); } catch (_) {}
+                }
+              }
             };
             tocEl.appendChild(a);
           });
@@ -463,7 +471,8 @@
 
       async function uploadToServer(file) {
         if (!serverLoggedIn) return;
-        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/epub+zip', 'X-Filename': file.name || 'book.epub' }, body: await file.arrayBuffer(), credentials: 'same-origin' });
+        const nameParam = encodeURIComponent(file.name || 'book.epub');
+        const res = await fetch('/api/upload?filename=' + nameParam, { method: 'POST', headers: { 'Content-Type': 'application/epub+zip' }, body: await file.arrayBuffer(), credentials: 'same-origin' });
         if (res.ok) {
           const j = await res.json();
           try {
