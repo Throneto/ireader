@@ -348,7 +348,7 @@
           loginBtn.disabled = true; loginStatus.textContent = '登录中...';
           const ac = new AbortController();
           const timer = setTimeout(() => ac.abort(), 12000);
-          const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }), signal: ac.signal });
+          const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }), signal: ac.signal, credentials: 'same-origin' });
           clearTimeout(timer);
           if (res.ok) { const j = await res.json(); csrfToken = j.csrf; serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none'; logoutBtn.style.display = ''; loginStatus.textContent = '已登录'; await refreshServerLibrary(); } else { loginStatus.textContent = '登录失败'; }
         } catch(e) { loginStatus.textContent = '服务器无响应'; }
@@ -357,7 +357,7 @@
       loginBtn.addEventListener('click', login);
 
       async function logout() {
-        await fetch('/api/logout', { method: 'POST' });
+        await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
         serverLoggedIn = false;
         csrfToken = null;
         adminPwInput.style.display = '';
@@ -414,17 +414,25 @@
 
       async function deleteServerBook(id) {
         if (!serverLoggedIn || !csrfToken) { alert('请先登录'); return; }
-        const headers = { 'X-CSRF-Token': csrfToken };
-        const res = await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers, credentials: 'same-origin' });
-        if (!res.ok) {
-          if (res.status === 401) {
-            serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = '';
-            alert('未授权，请重新登录');
-          } else if (res.status === 403) {
-            alert('删除失败：令牌无效');
-          } else {
-            alert('删除失败：' + res.status);
+        try {
+          const btns = Array.from(serverLibraryEl.querySelectorAll('button'));
+          btns.forEach(b=>{ if (b.textContent === '删除') { b.disabled = true; b.textContent = '删除中...'; } });
+          const headers = { 'X-CSRF-Token': csrfToken };
+          const res = await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers, credentials: 'same-origin' });
+          if (!res.ok) {
+            if (res.status === 401) {
+              serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = '';
+              alert('未授权，请重新登录');
+            } else if (res.status === 403) {
+              alert('删除失败：令牌无效');
+            } else {
+              alert('删除失败：' + res.status);
+            }
           }
+        } catch(e) {
+          alert('删除失败：' + (e && e.message ? e.message : '网络错误'));
+        } finally {
+          await refreshServerLibrary();
         }
       }
 
