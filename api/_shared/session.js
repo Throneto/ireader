@@ -1,7 +1,26 @@
 import crypto from 'node:crypto'
 export async function hmacHex(secret, data) { const h = crypto.createHmac('sha256', secret); h.update(data); return h.digest('hex') }
 
-export async function createSessionCookieHeader(user) { const secret = process.env.SESSION_SECRET; const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7; const payload = `${user}|${exp}`; const sig = await hmacHex(secret, payload); const value = `v1|${payload}|${sig}`; const maxAge = 60 * 60 * 24 * 7; const secure = 'Secure'; return `session=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}; ${secure}` }
+function isSecure(req) {
+  try {
+    const proto = header(req, 'x-forwarded-proto') || header(req, 'X-Forwarded-Proto')
+    if (proto) return (proto + '').split(',')[0].trim().toLowerCase() === 'https'
+    const enc = req?.connection?.encrypted || req?.socket?.encrypted
+    return !!enc
+  } catch { return false }
+}
+
+export async function createSessionCookieHeader(user, req) {
+  const secret = process.env.SESSION_SECRET
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+  const payload = `${user}|${exp}`
+  const sig = await hmacHex(secret, payload)
+  const value = `v1|${payload}|${sig}`
+  const maxAge = 60 * 60 * 24 * 7
+  const forceSecure = (process.env.COOKIE_SECURE || '').toLowerCase() === 'true'
+  const secure = (forceSecure || isSecure(req)) ? '; Secure' : ''
+  return `session=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`
+}
 
 function header(req, name) {
   try {

@@ -9,9 +9,13 @@ export default async function handler(req, res) {
   let pw = null
   try { const body = JSON.parse(raw || '{}'); pw = body.password } catch { pw = null }
   if (pw !== envPw) { res.statusCode = 401; return res.end('Unauthorized') }
-  const cookie = await createSessionCookieHeader('admin')
+  const cookie = await createSessionCookieHeader('admin', req)
   const csrf = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
-  const csrfCookie = `csrf=${csrf}; Path=/; SameSite=Lax; Max-Age=${60*60*24*7}`
+  const xfproto = (req.headers['x-forwarded-proto'] || req.headers['X-Forwarded-Proto'] || '')
+  const looksHttps = ((xfproto + '').split(',')[0].trim().toLowerCase() === 'https') || !!(req?.connection?.encrypted || req?.socket?.encrypted)
+  const forceSecure = (process.env.COOKIE_SECURE || '').toLowerCase() === 'true'
+  const secure = (forceSecure || looksHttps) ? '; Secure' : ''
+  const csrfCookie = `csrf=${csrf}; Path=/; SameSite=Lax; Max-Age=${60*60*24*7}${secure}`
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Set-Cookie', [cookie, csrfCookie])
   res.end(JSON.stringify({ ok: true, csrf }))

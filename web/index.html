@@ -370,7 +370,14 @@
       async function refreshServerLibrary() {
         try {
           const res = await fetch('/api/books', { credentials: 'same-origin' });
-          if (!res.ok) { serverLoggedIn = false; adminPwInput.style.display = ''; loginBtn.style.display = ''; serverLibraryEl.innerHTML = ''; return; }
+          if (!res.ok) {
+            serverLoggedIn = false;
+            adminPwInput.style.display = '';
+            loginBtn.style.display = '';
+            loginStatus.textContent = '未授权或会话失效';
+            serverLibraryEl.innerHTML = '';
+            return;
+          }
           serverLoggedIn = true; adminPwInput.style.display = 'none'; loginBtn.style.display = 'none';
           const data = await res.json();
           serverLibraryEl.innerHTML = '';
@@ -422,19 +429,24 @@
       }
 
       async function openServerBook(item) {
-        const res = await fetch(item.url);
-        const blob = await res.blob();
-        const buffer = await blob.arrayBuffer();
-        await ensureDB();
-        const id = await saveBookBuffer(buffer, { title: item.pathname.split('/').pop(), size: blob.size });
-        const r = await db.get('reading', id);
-        currentBookId = id;
-        await refreshLibrary();
-        await loadBook(buffer, r && r.lastCfi ? r.lastCfi : null);
         try {
-          const meta = await extractMeta(buffer, { title: item.pathname.split('/').pop() });
-          await updateServerMeta(item.pathname, meta.title, meta.author);
-        } catch (e) {}
+          const res = await fetch(item.url);
+          if (!res.ok) throw new Error('下载失败：' + res.status)
+          const blob = await res.blob();
+          const buffer = await blob.arrayBuffer();
+          await ensureDB();
+          const id = await saveBookBuffer(buffer, { title: item.pathname.split('/').pop(), size: blob.size });
+          const r = await db.get('reading', id);
+          currentBookId = id;
+          await refreshLibrary();
+          await loadBook(buffer, r && r.lastCfi ? r.lastCfi : null);
+          try {
+            const meta = await extractMeta(buffer, { title: item.pathname.split('/').pop() });
+            await updateServerMeta(item.pathname, meta.title, meta.author);
+          } catch (e) {}
+        } catch(e) {
+          alert('打开服务器书籍失败：' + (e && e.message ? e.message : '未知错误'));
+        }
       }
 
       async function uploadToServer(file) {
