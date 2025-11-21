@@ -389,9 +389,9 @@
             a.textContent = label;
             a.href = '#';
             a.onclick = async (ev) => { ev.preventDefault(); await openServerBook(item); };
-            const delBtn = document.createElement('button');
-            delBtn.textContent = '删除';
-            delBtn.onclick = async () => { await deleteServerBook(item.pathname); await refreshServerLibrary(); };
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '删除';
+          delBtn.onclick = async () => { await deleteServerBook(item.pathname, delBtn); };
             row.appendChild(a);
             row.appendChild(document.createTextNode(' '));
             row.appendChild(delBtn);
@@ -412,11 +412,10 @@
         } catch (e) { serverLoggedIn = false; }
       }
 
-      async function deleteServerBook(id) {
+      async function deleteServerBook(id, btn) {
         if (!serverLoggedIn || !csrfToken) { alert('请先登录'); return; }
         try {
-          const btns = Array.from(serverLibraryEl.querySelectorAll('button'));
-          btns.forEach(b=>{ if (b.textContent === '删除') { b.disabled = true; b.textContent = '删除中...'; } });
+          if (btn) { btn.disabled = true; btn.textContent = '删除中...'; }
           const headers = { 'X-CSRF-Token': csrfToken };
           const res = await fetch('/api/delete?id=' + encodeURIComponent(id), { method: 'DELETE', headers, credentials: 'same-origin' });
           if (!res.ok) {
@@ -432,7 +431,8 @@
         } catch(e) {
           alert('删除失败：' + (e && e.message ? e.message : '网络错误'));
         } finally {
-          await refreshServerLibrary();
+          try { await refreshServerLibrary(); }
+          catch (_) { if (btn) { btn.disabled = false; btn.textContent = '删除'; } }
         }
       }
 

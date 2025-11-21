@@ -1,5 +1,5 @@
 export const config = { runtime: 'nodejs' }
-import { del } from '@vercel/blob'
+import { list, del } from '@vercel/blob'
 import { verifySession } from './_shared/session.js'
 export default async function handler(req, res) {
   const ok = await verifySession(req)
@@ -13,7 +13,19 @@ export default async function handler(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const id = url.searchParams.get('id')
   if (!id) { res.statusCode = 400; return res.end('Bad Request') }
-  await del(id)
-  res.statusCode = 204
-  res.end()
+  try {
+    try { await del(id) }
+    catch (e1) {
+      const r = await list({ prefix: 'books/' })
+      const target = r.blobs.find(b => b.pathname === id)
+      if (!target) { res.statusCode = 404; return res.end('Not Found') }
+      try { await del(target.url) }
+      catch (e2) { res.statusCode = 500; return res.end('Delete Failed') }
+    }
+    res.statusCode = 204
+    res.end()
+  } catch (e) {
+    res.statusCode = 500
+    res.end('Internal Error')
+  }
 }
